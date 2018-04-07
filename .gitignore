@@ -31,5 +31,7 @@
 *.out
 *.app
 
-#data
-*.csv
+cmake-build-debug/
+cmake-build-release/
+
+
