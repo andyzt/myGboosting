@@ -1,5 +1,6 @@
 #include <vector>
 #include <iostream>
+#include <limits>
 #include "split.h"
 
 float Mean(const TFeature& data, const TMask& mask) {
