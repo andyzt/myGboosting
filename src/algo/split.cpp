@@ -1,7 +1,7 @@
 #include <vector>
 #include <iostream>
-#include <limits>
 #include "split.h"
+#include <numeric>
 
 float Mean(const TFeature& data, const TMask& mask) {
     float mean = 0.0;
@@ -60,7 +60,7 @@ TSplit GetOptimalSplit(const TFeatures& features, const TTarget& target, const T
 
     for (size_t featureId = 0; featureId < features.size(); ++featureId) {
         const auto& data = features[featureId];
-        for (auto value : GetPartition(data, mask, 10)) {
+        for (auto value : GetPartition(data, mask, 100)) {
             TMask mask1 = mask;
             TMask mask2 = mask;
 
@@ -86,6 +86,70 @@ TSplit GetOptimalSplit(const TFeatures& features, const TTarget& target, const T
             if (variance < minVariance) {
                 split.FeatureId = featureId;
                 split.Value = value;
+                minVariance = variance;
+            }
+        }
+    }
+
+    return split;
+}
+
+TSplit GetOptimalSplitHistogram(std::vector<THistogram> &hists, const TFeatures& features, const TTarget& target) {
+
+    TSplit split;
+    float minVariance = std::numeric_limits<float>::max();
+
+    for (size_t featureId = 0; featureId < features.size(); ++featureId) {
+
+        int sum_count = 0;
+        float target_sum = 0.0;
+
+        for (auto bin : hists[featureId]) {
+            sum_count += bin.cnt;
+            target_sum += bin.target_sum;
+        }
+
+        int cur_count = 0;
+        float cur_target_sum = 0;
+
+        for (size_t bin =0; bin <hists[featureId].size(); ++bin) {
+            if (hists[featureId][bin].cnt == 0)
+                continue;
+
+            cur_count += hists[featureId][bin].cnt;
+            cur_target_sum += hists[featureId][bin].target_sum;
+
+            float mean = cur_target_sum / float(cur_count);
+            float left_variance = 0.0;
+            for (size_t i = 0; i <= bin; ++i) {
+                if (hists[featureId][i].cnt == 0)
+                    continue;
+                float val = (hists[featureId][i].target_sum / float(hists[featureId][i].cnt) - mean);
+                left_variance += val*val;
+            }
+
+            if (sum_count == cur_count)
+                break;
+
+            mean = (target_sum - cur_target_sum) / float(sum_count - cur_count);
+            float right_variance = 0.0;
+            for (size_t i = bin + 1; i < hists[featureId].size(); ++i) {
+                if (hists[featureId][i].cnt == 0)
+                    continue;
+                float val = (hists[featureId][i].target_sum / float(hists[featureId][i].cnt) - mean);
+                right_variance += val*val;
+            }
+
+            auto variance = left_variance*float(cur_count) +
+                    right_variance*float(sum_count - cur_count);
+            
+
+            if (variance < minVariance) {
+                split.FeatureId = featureId;
+                split.Value = hists[featureId][bin].upper_bound;
+                split.l_count = cur_count;
+                split.r_count = sum_count - cur_count;
+
                 minVariance = variance;
             }
         }
