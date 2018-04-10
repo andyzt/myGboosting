@@ -7,7 +7,7 @@
 
 class TDecisionTreeNode {
 public:
-    TSplit Split;
+    size_t FeatureId;
     size_t Left = 0;
     size_t Right = 0;
     bool Leaf = false;

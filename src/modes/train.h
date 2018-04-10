@@ -5,5 +5,5 @@
 
 class TrainMode {
 public:
-    static void Run(TPool&& pool);
+    static void Run(const std::string& path);
 };
