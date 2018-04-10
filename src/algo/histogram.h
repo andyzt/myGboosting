@@ -3,6 +3,7 @@
 #include "defines.h"
 #include "split.h"
 #include <vector>
+#include <string>
 
 int FindBin(const THistogram& histogram, float value);
 

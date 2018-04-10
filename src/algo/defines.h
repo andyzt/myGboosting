@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vector>
+#include <string>
 
 // represents a single data column
 using TFeature = std::vector<float>;
