@@ -1,6 +1,5 @@
 #pragma once
 
-#include<string>
 #include <vector>
 
 // represents a single data column
@@ -20,3 +19,12 @@ using TNames = std::vector<std::string>;
 
 // a single case to calculate a prediction for
 using TFeatureVector = std::vector<float>;
+
+struct HistogramBin {
+    size_t cnt = 0;
+    float target_sum = 0;
+    float upper_bound;
+};
+
+// histogram
+using THistogram = std::vector<HistogramBin>;

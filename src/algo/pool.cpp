@@ -3,17 +3,19 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
-#include <algorithm>
 
 void TPool::LoadFromFile(const std::string& path, bool train) {
     std::ifstream input(path);
     std::string line;
 
+    if (!input.good())
+        throw std::length_error("File doesn't exist");
+
     while (input >> line) {
         if (Features.empty()) {
-            FeatureCount = size_t(std::count(line.begin(), line.end(), ','));
+            FeatureCount = size_t(std::count(line.begin(), line.end(), ',')) + 1;
             std::cout << "Detected " << FeatureCount << " columns" << std::endl;
-            for (size_t i = 0; i <= FeatureCount; ++i) {
+            for (size_t i = 0; i < FeatureCount; ++i) {
                 Features.emplace_back();
                 Features.back().reserve(1024);
             }
@@ -29,7 +31,7 @@ void TPool::LoadFromFile(const std::string& path, bool train) {
             Features[featureId++].push_back(value);
         }
 
-        if (featureId != FeatureCount + 1) {
+        if (featureId != FeatureCount) {
             throw std::length_error("Missing column in line " + std::to_string(Size + 1));
         }
 
