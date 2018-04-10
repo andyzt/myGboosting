@@ -1,5 +1,4 @@
 #include "pool.h"
-#include "binarization.h"
 
 #include <iostream>
 #include <fstream>

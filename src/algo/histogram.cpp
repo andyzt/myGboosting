@@ -1,6 +1,10 @@
 #include "histogram.h"
 
 #include <iostream>
+#include <string>
+#include <vector>
+#include <limits>
+#include <algorithm>
 
 int FindBin(const THistogram& histogram, float value) {
 
