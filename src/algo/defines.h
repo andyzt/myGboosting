@@ -1,6 +1,6 @@
 #pragma once
 
-#include <string>
+#include<string>
 #include <vector>
 
 // represents a single data column
@@ -29,3 +29,12 @@ using TRawFeatureVector = std::vector<float>;
 
 // binarized form
 using TFeatureVector = std::vector<char>;
+
+struct HistogramBin {
+    size_t cnt = 0;
+    float target_sum = 0;
+    float upper_bound;
+};
+
+// histogram
+using THistogram = std::vector<HistogramBin>;
