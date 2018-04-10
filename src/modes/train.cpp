@@ -1,5 +1,6 @@
 #include "train.h"
 
+#include "algo/binarization.h"
 #include "algo/defines.h"
 #include "algo/pool.h"
 #include "algo/split.h"

@@ -1,17 +1,12 @@
 #include "binarization.h"
 #include "defines.h"
+#include "histogram.h"
 
 #include <vector>
 #include <iostream>
 
-std::vector<float> GetSplits(const std::pair<float, float>& range, size_t parts) {
-    std::vector<float> partition;
-    auto min = range.first;
-    auto max = range.second;
-    for (size_t i = parts - 1; i > 0; --i) {
-        partition.push_back(min + i*(max - min)/float(parts));
-    }
-    return partition;
+std::vector<float> GetSplits(const TRawFeature& data, size_t parts) {
+    return BuildBinBounds(data, parts);
 }
 
 TPool TBinarizer::Binarize(TRawPool&& raw) {
@@ -30,7 +25,7 @@ TPool TBinarizer::Binarize(TRawPool&& raw) {
         if (!Hashes[rawFeatureId].empty()) {
             binarized = BinarizeCatFeature(rawColumn, Hashes[rawFeatureId].size());
         } else {
-            auto splits = GetSplits(raw.Ranges[rawFeatureId], 10);
+            auto splits = GetSplits(raw.RawFeatures[rawFeatureId], 10);
             binarized = BinarizeFloatFeature(rawColumn, splits);
             Splits.emplace_back(std::move(splits));
         }

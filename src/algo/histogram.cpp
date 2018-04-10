@@ -23,8 +23,8 @@ int FindBin(const THistogram& histogram, float value) {
 
 }
 
-std::vector<float> BuildBinBounds(const TFeature& data, size_t num_bins) {
-    TFeature sorted_data(data);
+std::vector<float> BuildBinBounds(const TRawFeature& data, size_t num_bins) {
+    TRawFeature sorted_data(data);
     std::sort(sorted_data.begin(), sorted_data.end());
 
     float avg_bin_size = data.size() / num_bins;
