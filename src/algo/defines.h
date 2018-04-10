@@ -2,7 +2,6 @@
 
 #include<string>
 #include <vector>
-#include <string>
 
 // represents a single data column
 using TRawFeature = std::vector<float>;
