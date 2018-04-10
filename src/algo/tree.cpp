@@ -5,7 +5,7 @@ bool TDecisionTreeNode::IsLeaf() const {
 }
 
 size_t TDecisionTreeNode::GetChild(const TFeatureVector& data) const {
-    if (data[Split.FeatureId] >= Split.Value) {
+    if (data[FeatureId] >= 0.5) {
         return Right;
     } else {
         return Left;
@@ -27,8 +27,7 @@ void TestDecisionTree() {
 
     {
         TDecisionTreeNode node;
-        node.Split.FeatureId = 1;
-        node.Split.Value = 5.0;
+        node.FeatureId = 1;
         node.Left = 1;
         node.Right = 2;
         tree.Nodes.push_back(node);
@@ -36,8 +35,7 @@ void TestDecisionTree() {
 
     {
         TDecisionTreeNode node;
-        node.Split.FeatureId = 0;
-        node.Split.Value = 0.0;
+        node.FeatureId = 0;
         node.Left = 3;
         node.Right = 4;
         tree.Nodes.push_back(node);
@@ -53,18 +51,18 @@ void TestDecisionTree() {
     {
         TDecisionTreeNode node;
         node.Leaf = true;
-        node.Value = -10;
+        node.Value = 0;
         tree.Nodes.push_back(node);
     }
 
     {
         TDecisionTreeNode node;
         node.Leaf = true;
-        node.Value = 0;
+        node.Value = -10;
         tree.Nodes.push_back(node);
     }
 
-    TFeatureVector data = {4, 3};
+    TFeatureVector data = {0, 1};
 
     std::cout << tree.Predict(data) << std::endl;
 }

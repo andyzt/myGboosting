@@ -1,11 +1,9 @@
-#include <iostream>
-#include <fstream>
-
 #include "lib/args.hxx"
 #include "lib/csv.h"
 #include "modes/train.h"
-#include "algo/defines.h"
-#include "algo/pool.h"
+
+#include <iostream>
+#include <fstream>
 
 int main(int argc, char** argv) {
     //аналогично LightGBM у нас будут функции LoadData, Train и Predict
@@ -26,45 +24,10 @@ int main(int argc, char** argv) {
     try {
         parser.ParseCLI(argc, argv);
         if (fit) {
-            std::cout << "Train" << std::endl;
-
-            auto path = args::get(input_file);
-            std::cout << "Loading " << path << std::endl;
-
-            TPool pool;
-            pool.LoadFromFile(path, true);
-
-            std::cout << "Done" << std::endl;
-            std::cout << "Features: " << pool.FeatureCount << std::endl;
-            std::cout << "Size: " << pool.Size << std::endl;
-
-            TrainMode::Run(std::move(pool));
-
-//            io::CSVReader<2, io::trim_chars<' '>, io::double_quote_escape<',', '\"'> > in(args::get(input_file));
-//            std::vector<std::string> names;
-//            names.push_back("V1");
-//            names.push_back(args::get(target_column));
-//
-//            //пришлось исправить этот метод в библиотеке, чтобы он принимал вектор вместо изменяемого числа аргументов
-//            in.read_header(io::ignore_extra_column, names);
-//            std::vector<float> row(31);
-//            //float target;
-//
-//            //пришлось исправить этот метод в библиотеке, чтобы он принимал вектор вместо изменяемого числа аргументов
-//            while (in.read_row(row)) {
-//                // do stuff with the data
-//            }
-
+            TrainMode::Run(args::get(input_file));
         } else if (predict) {
             std::cout << "Predict";
         }
-/*
-        for (auto &&path : pathsList)
-        {
-            std::cout << ' ' << path;
-        }
-
- */       std::cout << std::endl;
     }
     catch (args::Help) {
         std::cout << parser;
