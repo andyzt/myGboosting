@@ -22,6 +22,24 @@ float TDecisionTree::Predict(const TFeatureVector& data) {
     return Nodes[nodeId].Value;
 }
 
+size_t TDecisionTreeNode::GetChildPool(const TFeatures& data, const size_t row_num) const {
+    if (data[FeatureId][row_num] >= 0.5) {
+        return Right;
+    } else {
+        return Left;
+    }
+}
+
+float TDecisionTree::PredictPool(const TFeatures& data, const size_t row_num) const {
+    size_t nodeId = 0;
+
+    while (!Nodes[nodeId].IsLeaf()) {
+        nodeId = Nodes[nodeId].GetChildPool(data, row_num);
+    }
+
+    return Nodes[nodeId].Value;
+}
+
 void TestDecisionTree() {
     TDecisionTree tree;
 

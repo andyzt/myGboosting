@@ -82,6 +82,25 @@ TFeatureVector ReadLine(const std::string& line, const TBinarizer& binarizer) {
     return vector;
 }
 
+std::vector<float> TrainMode::SingleTreePredictions(const TPool& pool, const TDecisionTree& tree) {
+    std::vector<float> predictions(pool.Size, 0);
+    for (int k = 0; k < pool.Size; ++k) {
+        predictions[k] = tree.PredictPool(pool.Features, k);
+    }
+
+    return predictions;
+}
+
+std::vector<float> TrainMode::MakePredictions(const TPool& pool, const std::vector<TDecisionTree>& tree_vector) {
+    std::vector<float> predictions(pool.Size, 0);
+    for (int tree_index = tree_vector.size()-1; tree_index >=0; --tree_index) {
+        for (int k = 0; k < pool.Size; ++k) {
+            predictions[k] = tree_vector[tree_index].PredictPool(pool.Features, k) + predictions[k];
+        }
+    }
+    return predictions;
+}
+
 void TrainMode::Run(const std::string& path) {
     std::cout << "Train" << std::endl;
 
@@ -91,23 +110,41 @@ void TrainMode::Run(const std::string& path) {
     TBinarizer binarizer;
 
     pool = binarizer.Binarize(LoadTrainingPool(path));
+    pool.learning_rate = 0.1;
 
     std::cout << "Done" << std::endl;
     std::cout << "Raw features: " << pool.RawFeatureCount << std::endl;
     std::cout << "Binarized features: " << pool.BinarizedFeatureCount << std::endl;
     std::cout << "Size: " << pool.Size << std::endl;
 
-    TDecisionTree tree;
-    TMask mask(pool.Size, 1);
-    Train(pool, tree, mask, 0, 6, 10);
+    int num_trees = 5;
+    std::vector<TDecisionTree> tree_vector;
+    TTarget t_backup(pool.Target);
+    for (int i = 0; i< num_trees; ++i) {
+        TDecisionTree tree;
+        TMask mask(pool.Size, 1);
+        Train(pool, tree, mask, 0, 1, 10);
+        tree_vector.emplace_back(tree);
+        std::vector<float> predictions = SingleTreePredictions(pool, tree);
 
-    {
-        // Should be 1
-        std::cout << tree.Predict(ReadLine("6.4,2.9,4.3,1.3", binarizer)) << std::endl;
+        //replacing our target by gradient of current step
+        for (int row_num=0; row_num < pool.Size; ++row_num)
+            pool.Target[row_num] -= predictions[row_num];
     }
 
-    {
-        // Should be 0
-        std::cout << tree.Predict(ReadLine("4.8,3.4,1.6,0.2", binarizer)) << std::endl;
+    std::vector<float> predictions = MakePredictions(pool, tree_vector);
+    //std::vector<float> predictions = SingleTreePredictions(pool, tree_vector[tree_vector.size()-3]);
+    for (int j = 0; j < pool.Size; ++j) {
+        if (t_backup[j] != predictions[j])
+            std::cout << "Actual " << t_backup[j] << " Predicted "<< predictions[j] <<std::endl;
     }
+
+    // Should be 1
+    //std::cout << tree.Predict(ReadLine("6.4,2.9,4.3,1.3", binarizer)) << std::endl;
+
+
+
+    // Should be 0
+    //std::cout << tree.Predict(ReadLine("4.8,3.4,1.6,0.2", binarizer)) << std::endl;
+
 }
