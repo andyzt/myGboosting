@@ -6,6 +6,7 @@ import sys
 import os
 import os.path
 import random
+import subprocess
 
 
 def split_data_to_train_and_test(set_dir, work_dir, subsample_n, test_part, has_header=False, seed=42):
@@ -42,6 +43,16 @@ def split_data_to_train_and_test(set_dir, work_dir, subsample_n, test_part, has_
         f.writelines((x.split(",")[-1] + "\n" for x in lines[:test_n]))
 
     return train_filename, test_filename, test_labels_filename
+
+
+def run_train(train_file_name, work_dir, has_header, target, train_args = ""):
+    out_file = os.path.join(work_dir, "model")
+    command = "time ./myGboosting fit {} --output {}  {}".format(train_file_name,
+                                                                                            out_file,
+                                                                                            # has_header,
+                                                                                            # target,
+                                                                                            train_args)
+    run = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True, shell=True)
 
 
 if __name__ == "__main__":
@@ -85,4 +96,5 @@ if __name__ == "__main__":
         train_file = context.train_set
         test_file = context.test_set
         test_labels_file = context.test_set_labels
-    print(train_file, test_file, test_labels_file)
+    # print(train_file, test_file, test_labels_file)
+    run_train(train_file, context.work_dir, context.has_header, context.target, context.train_args)
