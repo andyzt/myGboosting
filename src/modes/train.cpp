@@ -17,25 +17,30 @@ TDecisionTreeNode Terminate(const TPool& pool, TMask& mask) {
     return node;
 }
 
-size_t Train(const TPool& pool, TDecisionTree& tree, TMask& mask, size_t depth, size_t maxDepth, size_t minCount) {
+size_t Train(const TPool& pool, TDecisionTree& tree, TMask& mask, size_t depth, size_t maxDepth,
+             size_t minCount, bool verbose) {
     if (depth == maxDepth) {
         tree.Nodes.push_back(Terminate(pool, mask));
-        std::cout << "Depth termination" << std::endl;
+        if (verbose)
+            std::cout << "Depth termination" << std::endl;
         return tree.Nodes.size() - 1;
     }
 
     auto count = size_t(std::accumulate(mask.begin(), mask.end(), 0));
-    std::cout << "Count = " << count << std::endl;
+    if (verbose)
+        std::cout << "Count = " << count << std::endl;
 
     if (count < minCount) {
         tree.Nodes.push_back(Terminate(pool, mask));
-        std::cout << "Count termination" << std::endl;
+        if (verbose)
+            std::cout << "Count termination" << std::endl;
         return tree.Nodes.size() - 1;
     }
 
     TDecisionTreeNode node;
     node.FeatureId = GetOptimalSplit(pool.Features, pool.Target, mask);
-    std::cout << "Split by feature " << node.FeatureId << std::endl;
+    if (verbose)
+        std::cout << "Split by feature " << node.FeatureId << std::endl;
 
     std::vector<size_t> maskIds;
     for (size_t id = 0; id < pool.Size; ++id) {
@@ -48,12 +53,12 @@ size_t Train(const TPool& pool, TDecisionTree& tree, TMask& mask, size_t depth, 
     tree.Nodes.push_back(node);
     auto nodeId = tree.Nodes.size() - 1;
 
-    tree.Nodes[nodeId].Right = Train(pool, tree, mask, depth + 1, maxDepth, minCount);
+    tree.Nodes[nodeId].Right = Train(pool, tree, mask, depth + 1, maxDepth, minCount, verbose);
 
     for (size_t id : maskIds) {
         mask[id] = pool.Features[node.FeatureId][id] < 0.5;
     }
-    tree.Nodes[nodeId].Left = Train(pool, tree, mask, depth + 1, maxDepth, minCount);
+    tree.Nodes[nodeId].Left = Train(pool, tree, mask, depth + 1, maxDepth, minCount, verbose);
 
     return nodeId;
 }
@@ -95,13 +100,13 @@ std::vector<float> TrainMode::MakePredictions(const TPool& pool, const std::vect
     std::vector<float> predictions(pool.Size, 0);
     for (int tree_index = tree_vector.size()-1; tree_index >=0; --tree_index) {
         for (int k = 0; k < pool.Size; ++k) {
-            predictions[k] = tree_vector[tree_index].PredictPool(pool.Features, k) + predictions[k];
+            predictions[k] = pool.learning_rate * tree_vector[tree_index].PredictPool(pool.Features, k) + predictions[k];
         }
     }
     return predictions;
 }
 
-void TrainMode::Run(const std::string& path) {
+void TrainMode::Run(const std::string& path, const int iterations, const float learning_rate, const int depth) {
     std::cout << "Train" << std::endl;
 
     std::cout << "Loading " << path << std::endl;
@@ -110,35 +115,37 @@ void TrainMode::Run(const std::string& path) {
     TBinarizer binarizer;
 
     pool = binarizer.Binarize(LoadTrainingPool(path));
-    pool.learning_rate = 0.1;
+    pool.learning_rate = learning_rate;
 
     std::cout << "Done" << std::endl;
     std::cout << "Raw features: " << pool.RawFeatureCount << std::endl;
     std::cout << "Binarized features: " << pool.BinarizedFeatureCount << std::endl;
     std::cout << "Size: " << pool.Size << std::endl;
 
-    int num_trees = 5;
     std::vector<TDecisionTree> tree_vector;
     TTarget t_backup(pool.Target);
-    for (int i = 0; i< num_trees; ++i) {
+    for (int i = 0; i< iterations; ++i) {
         TDecisionTree tree;
         TMask mask(pool.Size, 1);
-        Train(pool, tree, mask, 0, 1, 10);
+        Train(pool, tree, mask, 0, depth, 10, false);
         tree_vector.emplace_back(tree);
         std::vector<float> predictions = SingleTreePredictions(pool, tree);
 
         //replacing our target by gradient of current step
         for (int row_num=0; row_num < pool.Size; ++row_num)
-            pool.Target[row_num] -= predictions[row_num];
+            pool.Target[row_num] -= pool.learning_rate * predictions[row_num];
     }
 
     std::vector<float> predictions = MakePredictions(pool, tree_vector);
     //std::vector<float> predictions = SingleTreePredictions(pool, tree_vector[tree_vector.size()-3]);
+    float cur_mse = 0.0;
     for (int j = 0; j < pool.Size; ++j) {
         if (t_backup[j] != predictions[j])
-            std::cout << "Actual " << t_backup[j] << " Predicted "<< predictions[j] <<std::endl;
+            //std::cout << "Actual " << t_backup[j] << " Predicted "<< predictions[j] <<std::endl;
+            cur_mse += (t_backup[j] - predictions[j]) * (t_backup[j] - predictions[j]);
     }
-
+    cur_mse /= pool.Size;
+    std::cout << "MSE on train: "<< cur_mse << std::endl;
     // Should be 1
     //std::cout << tree.Predict(ReadLine("6.4,2.9,4.3,1.3", binarizer)) << std::endl;
 
