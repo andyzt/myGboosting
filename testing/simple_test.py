@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 from sklearn.metrics import roc_auc_score
 import logging
 import time
@@ -16,7 +17,7 @@ def split_data_to_train_and_test(set_dir, work_dir, subsample_n, test_part, has_
     f.close()
     lines = [x.strip() for x in lines if x.strip() != ""]
     random.seed(seed)
-    lines = random.shuffle(lines)
+    random.shuffle(lines)
     if subsample_n is not None:
         lines = lines[:subsample_n]
     n = len(lines)
@@ -35,10 +36,10 @@ def split_data_to_train_and_test(set_dir, work_dir, subsample_n, test_part, has_
         f.writelines((",".join(x.split(",")[:-1]) + "\n" for x in lines[:test_n]))
 
     test_labels_filename = os.path.join(work_dir, "test_labels.csv")
-    with open(test_filename, "w") as f:
+    with open(test_labels_filename, "w") as f:
         if header is not None:
             f.write(header + "\n")
-        f.writelines((x.split(",")[:-1] + "\n" for x in lines[:test_n]))
+        f.writelines((x.split(",")[-1] + "\n" for x in lines[:test_n]))
 
     return train_filename, test_filename, test_labels_filename
 
@@ -53,7 +54,7 @@ if __name__ == "__main__":
     import argparse
     parser = argparse.ArgumentParser(description='Trains model on given dataset then evaluates on it')
     parser.add_argument('-s', '--set', help='Dir with data.csv and columns.csv (optional)', default=None)
-    parser.add_argument('-h', '--has-header', help='Specifie if data files has header line', action='store_const')
+    parser.add_argument('-H', '--has-header', help='Specifie if data files has header line', action='store_true')
     parser.add_argument('--target', help='Target column name. Unused if no column file specified. '
                                          'Default: target', default="target")
 
