@@ -15,7 +15,9 @@ public:
 
 public:
     size_t GetChild(const TFeatureVector& data) const;
-    bool IsLeaf() const;
+    size_t GetChildPool(const TFeatures& data, const size_t row_num) const;
+
+        bool IsLeaf() const;
 };
 
 using TNodes = std::vector<TDecisionTreeNode>;
@@ -23,6 +25,7 @@ using TNodes = std::vector<TDecisionTreeNode>;
 class TDecisionTree {
 public:
     float Predict(const TFeatureVector& data);
+    float PredictPool(const TFeatures& data, const size_t row_num) const;
 
 public:
     TNodes Nodes;

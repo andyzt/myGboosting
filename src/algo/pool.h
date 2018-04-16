@@ -17,6 +17,7 @@ public:
     TFeatures Features;
     TTarget Target;
     TNames Names;
+    float learning_rate;
     size_t RawFeatureCount = 0;
     size_t BinarizedFeatureCount = 0;
     size_t Size = 0;
