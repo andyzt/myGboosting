@@ -25,7 +25,7 @@ void TModel::Fit(TPool&& pool, float rate, float iterations) {
 
         //replacing our target by gradient of current step
         for (size_t i = 0; i < pool.Size; ++i) {
-            pool.Target[i] -= rate*tree.Predict(pool.Rows[i]);
+            pool.Target[i] -= LearningRate*tree.Predict(pool.Rows[i]);
         }
 
         std::cout << "MSE = " << MSE(target, Predict(pool)) << std::endl;
@@ -36,7 +36,7 @@ TTarget TModel::Predict(const TPool& pool) const {
     TTarget predictions(pool.Size, 0.0);
     for (const auto& tree : Trees) {
         for (size_t i = 0; i < pool.Size; ++i) {
-            predictions[i] += tree.Predict(pool.Rows[i]);
+            predictions[i] += LearningRate*tree.Predict(pool.Rows[i]);
         }
     }
 

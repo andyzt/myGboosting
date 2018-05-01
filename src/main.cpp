@@ -18,7 +18,7 @@ int main(int argc, char** argv) {
     args::ValueFlag<std::string> output_file(arguments, "path", "output for train/predict", { "output" });
     args::ValueFlag<std::string> model_file(arguments, "path", "model for predict", { "model-path" });
     args::ValueFlag<std::string> target_column(arguments, "column name", "target column name", { "target" });
-    args::ValueFlag<int> iterations(arguments, "iterations amount", "number of trees in ensemble", { "iterations" }, 50);
+    args::ValueFlag<int> iterations(arguments, "iterations amount", "number of trees in ensemble", { "iterations" }, 100);
     args::ValueFlag<float> learning_rate(arguments, "learning-rate", "trees regularization", { "learning-rate" }, 1.0);
     args::ValueFlag<int> depth(arguments, "tree depth", "decision tree max depth", { "iterations" }, 6);
 
