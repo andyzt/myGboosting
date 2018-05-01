@@ -39,28 +39,30 @@ TPool TBinarizer::Binarize(TRawPool&& raw) {
     pool.RawFeatureCount = raw.RawFeatures.size();
     pool.BinarizedFeatureCount = pool.Features.size();
 
+    pool.Rows = SetupTestData(pool);
+
     return pool;
 }
 
-TFeatureVector TBinarizer::Binarize(size_t featureId, const std::string& value) const {
+TFeatureRow TBinarizer::Binarize(size_t featureId, const std::string& value) const {
     auto& hash = Hashes[featureId];
     auto it = hash.find(value);
     if (it == hash.end()) {
         throw std::logic_error("No such value for categorical feature was seen in the training pool");
     }
 
-    TFeatureVector vector(hash.size());
+    TFeatureRow vector(hash.size());
     vector[it->second] = 1;
     return vector;
 }
 
-TFeatureVector TBinarizer::Binarize(size_t featureId, float value) const {
+TFeatureRow TBinarizer::Binarize(size_t featureId, float value) const {
     const auto& splits = Splits[featureId];
     if (splits.empty()) {
         throw std::logic_error("No splits info found for this feature");
     }
 
-    TFeatureVector vector(splits.size());
+    TFeatureRow vector(splits.size());
     for (size_t i = 0; i < splits.size(); ++i) {
         if (value >= splits[i]) {
             vector[i] = 1;
@@ -94,4 +96,15 @@ TFeatures TBinarizer::BinarizeCatFeature(const TRawFeature& data, size_t cats) {
 
     return binarized;
 }
+
+TFeatureRows TBinarizer::SetupTestData(const TPool& pool) const {
+    TFeatureRows rows(pool.Size, TFeatureRow(pool.BinarizedFeatureCount));
+    for (size_t i = 0; i < pool.Size; ++i) {
+        for (size_t j = 0; j < pool.BinarizedFeatureCount; ++j) {
+            rows[i][j] = pool.Features[j][i];
+        }
+    }
+    return rows;
+}
+
 

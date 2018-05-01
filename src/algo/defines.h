@@ -9,7 +9,7 @@ using TRawFeature = std::vector<float>;
 // raw features
 using TRawFeatures = std::vector<TRawFeature>;
 
-// binarized form of a feature vector
+// binarized form of a feature
 using TFeature = std::vector<char>;
 
 // several feature columns in a vector
@@ -25,10 +25,13 @@ using TMask = std::vector<char>;
 using TNames = std::vector<std::string>;
 
 // a single case to calculate a prediction for
-using TRawFeatureVector = std::vector<float>;
+using TRawFeatureRow = std::vector<float>;
 
 // binarized form
-using TFeatureVector = std::vector<char>;
+using TFeatureRow = std::vector<char>;
+
+// several rows
+using TFeatureRows = std::vector<TFeatureRow>;
 
 struct HistogramBin {
     size_t cnt = 0;

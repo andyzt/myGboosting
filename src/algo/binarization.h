@@ -8,12 +8,13 @@
 class TBinarizer {
 public:
     TPool Binarize(TRawPool&& raw);
-    TFeatureVector Binarize(size_t featureId, const std::string& value) const;
-    TFeatureVector Binarize(size_t featureId, float value) const;
+    TFeatureRow Binarize(size_t featureId, const std::string& value) const;
+    TFeatureRow Binarize(size_t featureId, float value) const;
 
 private:
     TFeatures BinarizeFloatFeature(const TRawFeature& data, std::vector<float> splits);
     TFeatures BinarizeCatFeature(const TRawFeature& data, size_t cats);
+    TFeatureRows SetupTestData(const TPool& pool) const;
 
 private:
     std::vector<size_t> BinarizedToRaw;

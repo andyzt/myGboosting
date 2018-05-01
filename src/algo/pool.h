@@ -1,7 +1,8 @@
 #pragma once
 
-#include <unordered_map>
 #include "defines.h"
+
+#include <unordered_map>
 
 class TRawPool {
 public:
@@ -15,9 +16,9 @@ public:
 class TPool {
 public:
     TFeatures Features;
+    TFeatureRows Rows;
     TTarget Target;
     TNames Names;
-    float learning_rate;
     size_t RawFeatureCount = 0;
     size_t BinarizedFeatureCount = 0;
     size_t Size = 0;
