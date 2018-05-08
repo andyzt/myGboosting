@@ -6,7 +6,8 @@
 
 class TrainMode {
 public:
-    static void Run(const std::string& path, const int iterations, const float rate, const int depth);
+    static void Run(const std::string& path, const int iterations, const float rate, const int depth,
+                    const std::string& output_file);
 };
 
 

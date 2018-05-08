@@ -1,0 +1,20 @@
+syntax = "proto2";
+
+package proto_model;
+
+message TreeNode {
+    required int32 FeatureId = 1;
+    required int32 Left = 2;
+    required int32 Right = 3;
+    required bool Leaf = 4;
+    required float Value = 5;
+}
+
+message Tree {
+    repeated TreeNode node = 1;
+}
+
+message Model {
+  repeated Tree tree = 1;
+  required float lr = 2;
+}

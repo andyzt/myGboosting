@@ -1,4 +1,4 @@
-#include "train.h"
+#include "predict.h"
 
 #include "algo/binarization.h"
 #include "algo/defines.h"
@@ -9,13 +9,12 @@
 
 #include <iostream>
 #include <numeric>
-#include <sstream>
+#include <fstream>
 
-void TrainMode::Run(const std::string& path, const int iterations, const float rate, const int depth,
-                    const std::string& output_file) {
-    std::cout << "Train" << std::endl;
+void PredictMode::Run(const std::string& path, const std::string& model_file, const std::string& output_file) {
+    std::cout << "Predict" << std::endl;
 
-    std::cout << "Loading " << path << std::endl;
+    std::cout << "Loading Dataset" << path << std::endl;
 
     TPool pool;
     TBinarizer binarizer;
@@ -28,8 +27,17 @@ void TrainMode::Run(const std::string& path, const int iterations, const float r
     std::cout << "Size: " << pool.Size << std::endl;
 
     TModel model(std::move(binarizer));
-    model.Fit(std::move(pool), rate, iterations);
+    model.DeSerialize(model_file);
+
+    auto predictions = model.Predict(std::move(pool));
 
     std::cout << "Writing to file: " << output_file << std::endl;
-    model.Serialize(output_file);
+
+    std::ofstream out(output_file);
+    for (const auto& val : predictions) {
+        //std::cout << val << std::endl;
+        out << val << std::endl;
+    }
+
+    out.close();
 }
