@@ -31,5 +31,5 @@ void TrainMode::Run(const std::string& path, const int iterations, const float r
     model.Fit(std::move(pool), rate, iterations);
 
     std::cout << "Writing to file: " << output_file << std::endl;
-    model.Serialize(output_file);
+    model.Serialize(output_file, pool);
 }

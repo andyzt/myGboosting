@@ -28,6 +28,9 @@
 #include <google/protobuf/message.h>
 #include <google/protobuf/repeated_field.h>  // IWYU pragma: export
 #include <google/protobuf/extension_set.h>  // IWYU pragma: export
+#include <google/protobuf/map.h>  // IWYU pragma: export
+#include <google/protobuf/map_entry.h>
+#include <google/protobuf/map_field_inl.h>
 #include <google/protobuf/unknown_field_set.h>
 // @@protoc_insertion_point(includes)
 
@@ -36,7 +39,7 @@ namespace protobuf_model_2eproto {
 struct TableStruct {
   static const ::google::protobuf::internal::ParseTableField entries[];
   static const ::google::protobuf::internal::AuxillaryParseTableField aux[];
-  static const ::google::protobuf::internal::ParseTable schema[3];
+  static const ::google::protobuf::internal::ParseTable schema[6];
   static const ::google::protobuf::internal::FieldMetadata field_metadata[];
   static const ::google::protobuf::internal::SerializationTable serialization_table[];
   static const ::google::protobuf::uint32 offsets[];
@@ -46,18 +49,36 @@ void InitDefaultsTreeNodeImpl();
 void InitDefaultsTreeNode();
 void InitDefaultsTreeImpl();
 void InitDefaultsTree();
+void InitDefaultsHash_HashEntry_DoNotUseImpl();
+void InitDefaultsHash_HashEntry_DoNotUse();
+void InitDefaultsHashImpl();
+void InitDefaultsHash();
+void InitDefaultsSplitImpl();
+void InitDefaultsSplit();
 void InitDefaultsModelImpl();
 void InitDefaultsModel();
 inline void InitDefaults() {
   InitDefaultsTreeNode();
   InitDefaultsTree();
+  InitDefaultsHash_HashEntry_DoNotUse();
+  InitDefaultsHash();
+  InitDefaultsSplit();
   InitDefaultsModel();
 }
 }  // namespace protobuf_model_2eproto
 namespace proto_model {
+class Hash;
+class HashDefaultTypeInternal;
+extern HashDefaultTypeInternal _Hash_default_instance_;
+class Hash_HashEntry_DoNotUse;
+class Hash_HashEntry_DoNotUseDefaultTypeInternal;
+extern Hash_HashEntry_DoNotUseDefaultTypeInternal _Hash_HashEntry_DoNotUse_default_instance_;
 class Model;
 class ModelDefaultTypeInternal;
 extern ModelDefaultTypeInternal _Model_default_instance_;
+class Split;
+class SplitDefaultTypeInternal;
+extern SplitDefaultTypeInternal _Split_default_instance_;
 class Tree;
 class TreeDefaultTypeInternal;
 extern TreeDefaultTypeInternal _Tree_default_instance_;
@@ -335,6 +356,256 @@ class Tree : public ::google::protobuf::Message /* @@protoc_insertion_point(clas
 };
 // -------------------------------------------------------------------
 
+class Hash_HashEntry_DoNotUse : public ::google::protobuf::internal::MapEntry<Hash_HashEntry_DoNotUse, 
+    ::std::string, ::google::protobuf::int32,
+    ::google::protobuf::internal::WireFormatLite::TYPE_STRING,
+    ::google::protobuf::internal::WireFormatLite::TYPE_INT32,
+    0 > {
+public:
+  typedef ::google::protobuf::internal::MapEntry<Hash_HashEntry_DoNotUse, 
+    ::std::string, ::google::protobuf::int32,
+    ::google::protobuf::internal::WireFormatLite::TYPE_STRING,
+    ::google::protobuf::internal::WireFormatLite::TYPE_INT32,
+    0 > SuperType;
+  Hash_HashEntry_DoNotUse();
+  Hash_HashEntry_DoNotUse(::google::protobuf::Arena* arena);
+  void MergeFrom(const Hash_HashEntry_DoNotUse& other);
+  static const Hash_HashEntry_DoNotUse* internal_default_instance() { return reinterpret_cast<const Hash_HashEntry_DoNotUse*>(&_Hash_HashEntry_DoNotUse_default_instance_); }
+  void MergeFrom(const ::google::protobuf::Message& other) PROTOBUF_FINAL;
+  ::google::protobuf::Metadata GetMetadata() const;
+};
+
+// -------------------------------------------------------------------
+
+class Hash : public ::google::protobuf::Message /* @@protoc_insertion_point(class_definition:proto_model.Hash) */ {
+ public:
+  Hash();
+  virtual ~Hash();
+
+  Hash(const Hash& from);
+
+  inline Hash& operator=(const Hash& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  #if LANG_CXX11
+  Hash(Hash&& from) noexcept
+    : Hash() {
+    *this = ::std::move(from);
+  }
+
+  inline Hash& operator=(Hash&& from) noexcept {
+    if (GetArenaNoVirtual() == from.GetArenaNoVirtual()) {
+      if (this != &from) InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+  #endif
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const {
+    return _internal_metadata_.unknown_fields();
+  }
+  inline ::google::protobuf::UnknownFieldSet* mutable_unknown_fields() {
+    return _internal_metadata_.mutable_unknown_fields();
+  }
+
+  static const ::google::protobuf::Descriptor* descriptor();
+  static const Hash& default_instance();
+
+  static void InitAsDefaultInstance();  // FOR INTERNAL USE ONLY
+  static inline const Hash* internal_default_instance() {
+    return reinterpret_cast<const Hash*>(
+               &_Hash_default_instance_);
+  }
+  static PROTOBUF_CONSTEXPR int const kIndexInFileMessages =
+    3;
+
+  void Swap(Hash* other);
+  friend void swap(Hash& a, Hash& b) {
+    a.Swap(&b);
+  }
+
+  // implements Message ----------------------------------------------
+
+  inline Hash* New() const PROTOBUF_FINAL { return New(NULL); }
+
+  Hash* New(::google::protobuf::Arena* arena) const PROTOBUF_FINAL;
+  void CopyFrom(const ::google::protobuf::Message& from) PROTOBUF_FINAL;
+  void MergeFrom(const ::google::protobuf::Message& from) PROTOBUF_FINAL;
+  void CopyFrom(const Hash& from);
+  void MergeFrom(const Hash& from);
+  void Clear() PROTOBUF_FINAL;
+  bool IsInitialized() const PROTOBUF_FINAL;
+
+  size_t ByteSizeLong() const PROTOBUF_FINAL;
+  bool MergePartialFromCodedStream(
+      ::google::protobuf::io::CodedInputStream* input) PROTOBUF_FINAL;
+  void SerializeWithCachedSizes(
+      ::google::protobuf::io::CodedOutputStream* output) const PROTOBUF_FINAL;
+  ::google::protobuf::uint8* InternalSerializeWithCachedSizesToArray(
+      bool deterministic, ::google::protobuf::uint8* target) const PROTOBUF_FINAL;
+  int GetCachedSize() const PROTOBUF_FINAL { return _cached_size_; }
+  private:
+  void SharedCtor();
+  void SharedDtor();
+  void SetCachedSize(int size) const PROTOBUF_FINAL;
+  void InternalSwap(Hash* other);
+  private:
+  inline ::google::protobuf::Arena* GetArenaNoVirtual() const {
+    return NULL;
+  }
+  inline void* MaybeArenaPtr() const {
+    return NULL;
+  }
+  public:
+
+  ::google::protobuf::Metadata GetMetadata() const PROTOBUF_FINAL;
+
+  // nested types ----------------------------------------------------
+
+
+  // accessors -------------------------------------------------------
+
+  // map<string, int32> hash = 1;
+  int hash_size() const;
+  void clear_hash();
+  static const int kHashFieldNumber = 1;
+  const ::google::protobuf::Map< ::std::string, ::google::protobuf::int32 >&
+      hash() const;
+  ::google::protobuf::Map< ::std::string, ::google::protobuf::int32 >*
+      mutable_hash();
+
+  // @@protoc_insertion_point(class_scope:proto_model.Hash)
+ private:
+
+  ::google::protobuf::internal::InternalMetadataWithArena _internal_metadata_;
+  ::google::protobuf::internal::HasBits<1> _has_bits_;
+  mutable int _cached_size_;
+  ::google::protobuf::internal::MapField<
+      Hash_HashEntry_DoNotUse,
+      ::std::string, ::google::protobuf::int32,
+      ::google::protobuf::internal::WireFormatLite::TYPE_STRING,
+      ::google::protobuf::internal::WireFormatLite::TYPE_INT32,
+      0 > hash_;
+  friend struct ::protobuf_model_2eproto::TableStruct;
+  friend void ::protobuf_model_2eproto::InitDefaultsHashImpl();
+};
+// -------------------------------------------------------------------
+
+class Split : public ::google::protobuf::Message /* @@protoc_insertion_point(class_definition:proto_model.Split) */ {
+ public:
+  Split();
+  virtual ~Split();
+
+  Split(const Split& from);
+
+  inline Split& operator=(const Split& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  #if LANG_CXX11
+  Split(Split&& from) noexcept
+    : Split() {
+    *this = ::std::move(from);
+  }
+
+  inline Split& operator=(Split&& from) noexcept {
+    if (GetArenaNoVirtual() == from.GetArenaNoVirtual()) {
+      if (this != &from) InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+  #endif
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const {
+    return _internal_metadata_.unknown_fields();
+  }
+  inline ::google::protobuf::UnknownFieldSet* mutable_unknown_fields() {
+    return _internal_metadata_.mutable_unknown_fields();
+  }
+
+  static const ::google::protobuf::Descriptor* descriptor();
+  static const Split& default_instance();
+
+  static void InitAsDefaultInstance();  // FOR INTERNAL USE ONLY
+  static inline const Split* internal_default_instance() {
+    return reinterpret_cast<const Split*>(
+               &_Split_default_instance_);
+  }
+  static PROTOBUF_CONSTEXPR int const kIndexInFileMessages =
+    4;
+
+  void Swap(Split* other);
+  friend void swap(Split& a, Split& b) {
+    a.Swap(&b);
+  }
+
+  // implements Message ----------------------------------------------
+
+  inline Split* New() const PROTOBUF_FINAL { return New(NULL); }
+
+  Split* New(::google::protobuf::Arena* arena) const PROTOBUF_FINAL;
+  void CopyFrom(const ::google::protobuf::Message& from) PROTOBUF_FINAL;
+  void MergeFrom(const ::google::protobuf::Message& from) PROTOBUF_FINAL;
+  void CopyFrom(const Split& from);
+  void MergeFrom(const Split& from);
+  void Clear() PROTOBUF_FINAL;
+  bool IsInitialized() const PROTOBUF_FINAL;
+
+  size_t ByteSizeLong() const PROTOBUF_FINAL;
+  bool MergePartialFromCodedStream(
+      ::google::protobuf::io::CodedInputStream* input) PROTOBUF_FINAL;
+  void SerializeWithCachedSizes(
+      ::google::protobuf::io::CodedOutputStream* output) const PROTOBUF_FINAL;
+  ::google::protobuf::uint8* InternalSerializeWithCachedSizesToArray(
+      bool deterministic, ::google::protobuf::uint8* target) const PROTOBUF_FINAL;
+  int GetCachedSize() const PROTOBUF_FINAL { return _cached_size_; }
+  private:
+  void SharedCtor();
+  void SharedDtor();
+  void SetCachedSize(int size) const PROTOBUF_FINAL;
+  void InternalSwap(Split* other);
+  private:
+  inline ::google::protobuf::Arena* GetArenaNoVirtual() const {
+    return NULL;
+  }
+  inline void* MaybeArenaPtr() const {
+    return NULL;
+  }
+  public:
+
+  ::google::protobuf::Metadata GetMetadata() const PROTOBUF_FINAL;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  // repeated float split_val = 1;
+  int split_val_size() const;
+  void clear_split_val();
+  static const int kSplitValFieldNumber = 1;
+  float split_val(int index) const;
+  void set_split_val(int index, float value);
+  void add_split_val(float value);
+  const ::google::protobuf::RepeatedField< float >&
+      split_val() const;
+  ::google::protobuf::RepeatedField< float >*
+      mutable_split_val();
+
+  // @@protoc_insertion_point(class_scope:proto_model.Split)
+ private:
+
+  ::google::protobuf::internal::InternalMetadataWithArena _internal_metadata_;
+  ::google::protobuf::internal::HasBits<1> _has_bits_;
+  mutable int _cached_size_;
+  ::google::protobuf::RepeatedField< float > split_val_;
+  friend struct ::protobuf_model_2eproto::TableStruct;
+  friend void ::protobuf_model_2eproto::InitDefaultsSplitImpl();
+};
+// -------------------------------------------------------------------
+
 class Model : public ::google::protobuf::Message /* @@protoc_insertion_point(class_definition:proto_model.Model) */ {
  public:
   Model();
@@ -377,7 +648,7 @@ class Model : public ::google::protobuf::Message /* @@protoc_insertion_point(cla
                &_Model_default_instance_);
   }
   static PROTOBUF_CONSTEXPR int const kIndexInFileMessages =
-    2;
+    5;
 
   void Swap(Model* other);
   friend void swap(Model& a, Model& b) {
@@ -436,10 +707,34 @@ class Model : public ::google::protobuf::Message /* @@protoc_insertion_point(cla
   const ::google::protobuf::RepeatedPtrField< ::proto_model::Tree >&
       tree() const;
 
-  // required float lr = 2;
+  // repeated .proto_model.Hash hashes = 2;
+  int hashes_size() const;
+  void clear_hashes();
+  static const int kHashesFieldNumber = 2;
+  const ::proto_model::Hash& hashes(int index) const;
+  ::proto_model::Hash* mutable_hashes(int index);
+  ::proto_model::Hash* add_hashes();
+  ::google::protobuf::RepeatedPtrField< ::proto_model::Hash >*
+      mutable_hashes();
+  const ::google::protobuf::RepeatedPtrField< ::proto_model::Hash >&
+      hashes() const;
+
+  // repeated .proto_model.Split splits = 3;
+  int splits_size() const;
+  void clear_splits();
+  static const int kSplitsFieldNumber = 3;
+  const ::proto_model::Split& splits(int index) const;
+  ::proto_model::Split* mutable_splits(int index);
+  ::proto_model::Split* add_splits();
+  ::google::protobuf::RepeatedPtrField< ::proto_model::Split >*
+      mutable_splits();
+  const ::google::protobuf::RepeatedPtrField< ::proto_model::Split >&
+      splits() const;
+
+  // required float lr = 4;
   bool has_lr() const;
   void clear_lr();
-  static const int kLrFieldNumber = 2;
+  static const int kLrFieldNumber = 4;
   float lr() const;
   void set_lr(float value);
 
@@ -452,6 +747,8 @@ class Model : public ::google::protobuf::Message /* @@protoc_insertion_point(cla
   ::google::protobuf::internal::HasBits<1> _has_bits_;
   mutable int _cached_size_;
   ::google::protobuf::RepeatedPtrField< ::proto_model::Tree > tree_;
+  ::google::protobuf::RepeatedPtrField< ::proto_model::Hash > hashes_;
+  ::google::protobuf::RepeatedPtrField< ::proto_model::Split > splits_;
   float lr_;
   friend struct ::protobuf_model_2eproto::TableStruct;
   friend void ::protobuf_model_2eproto::InitDefaultsModelImpl();
@@ -623,6 +920,64 @@ Tree::node() const {
 
 // -------------------------------------------------------------------
 
+// -------------------------------------------------------------------
+
+// Hash
+
+// map<string, int32> hash = 1;
+inline int Hash::hash_size() const {
+  return hash_.size();
+}
+inline void Hash::clear_hash() {
+  hash_.Clear();
+}
+inline const ::google::protobuf::Map< ::std::string, ::google::protobuf::int32 >&
+Hash::hash() const {
+  // @@protoc_insertion_point(field_map:proto_model.Hash.hash)
+  return hash_.GetMap();
+}
+inline ::google::protobuf::Map< ::std::string, ::google::protobuf::int32 >*
+Hash::mutable_hash() {
+  // @@protoc_insertion_point(field_mutable_map:proto_model.Hash.hash)
+  return hash_.MutableMap();
+}
+
+// -------------------------------------------------------------------
+
+// Split
+
+// repeated float split_val = 1;
+inline int Split::split_val_size() const {
+  return split_val_.size();
+}
+inline void Split::clear_split_val() {
+  split_val_.Clear();
+}
+inline float Split::split_val(int index) const {
+  // @@protoc_insertion_point(field_get:proto_model.Split.split_val)
+  return split_val_.Get(index);
+}
+inline void Split::set_split_val(int index, float value) {
+  split_val_.Set(index, value);
+  // @@protoc_insertion_point(field_set:proto_model.Split.split_val)
+}
+inline void Split::add_split_val(float value) {
+  split_val_.Add(value);
+  // @@protoc_insertion_point(field_add:proto_model.Split.split_val)
+}
+inline const ::google::protobuf::RepeatedField< float >&
+Split::split_val() const {
+  // @@protoc_insertion_point(field_list:proto_model.Split.split_val)
+  return split_val_;
+}
+inline ::google::protobuf::RepeatedField< float >*
+Split::mutable_split_val() {
+  // @@protoc_insertion_point(field_mutable_list:proto_model.Split.split_val)
+  return &split_val_;
+}
+
+// -------------------------------------------------------------------
+
 // Model
 
 // repeated .proto_model.Tree tree = 1;
@@ -655,7 +1010,67 @@ Model::tree() const {
   return tree_;
 }
 
-// required float lr = 2;
+// repeated .proto_model.Hash hashes = 2;
+inline int Model::hashes_size() const {
+  return hashes_.size();
+}
+inline void Model::clear_hashes() {
+  hashes_.Clear();
+}
+inline const ::proto_model::Hash& Model::hashes(int index) const {
+  // @@protoc_insertion_point(field_get:proto_model.Model.hashes)
+  return hashes_.Get(index);
+}
+inline ::proto_model::Hash* Model::mutable_hashes(int index) {
+  // @@protoc_insertion_point(field_mutable:proto_model.Model.hashes)
+  return hashes_.Mutable(index);
+}
+inline ::proto_model::Hash* Model::add_hashes() {
+  // @@protoc_insertion_point(field_add:proto_model.Model.hashes)
+  return hashes_.Add();
+}
+inline ::google::protobuf::RepeatedPtrField< ::proto_model::Hash >*
+Model::mutable_hashes() {
+  // @@protoc_insertion_point(field_mutable_list:proto_model.Model.hashes)
+  return &hashes_;
+}
+inline const ::google::protobuf::RepeatedPtrField< ::proto_model::Hash >&
+Model::hashes() const {
+  // @@protoc_insertion_point(field_list:proto_model.Model.hashes)
+  return hashes_;
+}
+
+// repeated .proto_model.Split splits = 3;
+inline int Model::splits_size() const {
+  return splits_.size();
+}
+inline void Model::clear_splits() {
+  splits_.Clear();
+}
+inline const ::proto_model::Split& Model::splits(int index) const {
+  // @@protoc_insertion_point(field_get:proto_model.Model.splits)
+  return splits_.Get(index);
+}
+inline ::proto_model::Split* Model::mutable_splits(int index) {
+  // @@protoc_insertion_point(field_mutable:proto_model.Model.splits)
+  return splits_.Mutable(index);
+}
+inline ::proto_model::Split* Model::add_splits() {
+  // @@protoc_insertion_point(field_add:proto_model.Model.splits)
+  return splits_.Add();
+}
+inline ::google::protobuf::RepeatedPtrField< ::proto_model::Split >*
+Model::mutable_splits() {
+  // @@protoc_insertion_point(field_mutable_list:proto_model.Model.splits)
+  return &splits_;
+}
+inline const ::google::protobuf::RepeatedPtrField< ::proto_model::Split >&
+Model::splits() const {
+  // @@protoc_insertion_point(field_list:proto_model.Model.splits)
+  return splits_;
+}
+
+// required float lr = 4;
 inline bool Model::has_lr() const {
   return (_has_bits_[0] & 0x00000001u) != 0;
 }
@@ -682,6 +1097,12 @@ inline void Model::set_lr(float value) {
 #ifdef __GNUC__
   #pragma GCC diagnostic pop
 #endif  // __GNUC__
+// -------------------------------------------------------------------
+
+// -------------------------------------------------------------------
+
+// -------------------------------------------------------------------
+
 // -------------------------------------------------------------------
 
 // -------------------------------------------------------------------

@@ -18,16 +18,21 @@ void PredictMode::Run(const std::string& path, const std::string& model_file, co
 
     TPool pool;
     TBinarizer binarizer;
+    TModel model;
 
-    pool = binarizer.Binarize(LoadTrainingPool(path));
+    std::vector<std::vector<float>> splits;
+    std::vector<std::unordered_map<std::string, size_t>> hashes;
+    model.DeSerialize(model_file, hashes, splits);
+    
+    pool = binarizer.BinarizeTestData(LoadTestingPool(path, hashes), splits);
 
     std::cout << "Done" << std::endl;
     std::cout << "Raw features: " << pool.RawFeatureCount << std::endl;
     std::cout << "Binarized features: " << pool.BinarizedFeatureCount << std::endl;
     std::cout << "Size: " << pool.Size << std::endl;
 
-    TModel model(std::move(binarizer));
-    model.DeSerialize(model_file);
+    //TModel model(std::move(binarizer));
+
 
     auto predictions = model.Predict(std::move(pool));
 

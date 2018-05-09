@@ -12,6 +12,8 @@ static float MSE(const TTarget& target, const TTarget& test) {
     return mse / target.size();
 }
 
+TModel::TModel() {}
+
 TModel::TModel(TBinarizer&& binarizer)
     : Binarizer(std::forward<TBinarizer>(binarizer)) {
 
@@ -50,7 +52,7 @@ TTarget TModel::Predict(const TPool& pool) const {
 //    return TTarget();
 //}
 
-void TModel::Serialize(const std::string& filename) {
+void TModel::Serialize(const std::string& filename, const TPool& pool) {
     // Verify that the version of the library that we linked against is
     // compatible with the version of the headers we compiled against.
     GOOGLE_PROTOBUF_VERIFY_VERSION;
@@ -58,6 +60,7 @@ void TModel::Serialize(const std::string& filename) {
     proto_model::Model my_model;
     my_model.set_lr(LearningRate);
 
+    //saving all decision trees
     for (const auto& tree : Trees) {
         auto serialized_tree = my_model.add_tree();
         for (const auto& node : tree.Nodes) {
@@ -68,6 +71,21 @@ void TModel::Serialize(const std::string& filename) {
             serialized_node->set_leaf(node.Leaf);
             serialized_node->set_value(node.Value);
         }
+    }
+
+    //saving all splits
+    for (const auto& split : Binarizer.GetSplits()) {
+        auto serialized_split = my_model.add_splits();
+        for (const auto& split_val : split)
+            serialized_split->add_split_val(split_val);
+    }
+
+    //saving all hashes
+    for (const auto& hash : pool.Hashes) {
+        auto serialized_hash = my_model.add_hashes();
+        for (auto it : hash)
+            (*serialized_hash->mutable_hash())[it.first] = it.second;
+
     }
 
     // Write the model to disk.
@@ -82,13 +100,16 @@ void TModel::Serialize(const std::string& filename) {
 
 }
 
-void TModel::DeSerialize(const std::string& filename) {
+void TModel::DeSerialize(const std::string& filename,
+                         std::vector<std::unordered_map<std::string, size_t>>& hashes,
+                         std::vector<std::vector<float>>& splits) {
     // Verify that the version of the library that we linked against is
     // compatible with the version of the headers we compiled against.
     GOOGLE_PROTOBUF_VERIFY_VERSION;
 
 
-    proto_model::Model my_model;
+
+     proto_model::Model my_model;
 
     // Read the existing model.
     std::fstream input(filename, std::ios::in | std::ios::binary);
@@ -96,7 +117,7 @@ void TModel::DeSerialize(const std::string& filename) {
         std::cout << filename << ": File not found." << std::endl;
         return;
     } else if (!my_model.ParseFromIstream(&input)) {
-        std::cerr << "Failed to parse address book." << std::endl;
+        std::cerr << "Failed to parse model." << std::endl;
         return;
     }
 
@@ -116,14 +137,25 @@ void TModel::DeSerialize(const std::string& filename) {
         Trees.emplace_back(new_tree);
     }
 
-    // Write the model to disk.
-    std::fstream output(filename, std::ios::out | std::ios::trunc | std::ios::binary);
-    if (!my_model.SerializeToOstream(&output)) {
-        std::cerr << "Failed to write address book." << std::endl;
+    //loading all splits
 
+    for (int i=0; i <  my_model.splits_size(); ++i) {
+        std::vector<float> new_split;
+        for (int j=0; j <  my_model.splits(i).split_val_size(); ++j)
+            new_split.push_back(my_model.splits(i).split_val(j));
+        splits.emplace_back(new_split);
     }
 
-    // Optional:  Delete all global objects allocated by libprotobuf.
+    //loading all hashes
+    for (int i=0; i <  my_model.hashes_size(); ++i) {
+        std::unordered_map<std::string, size_t> new_hash;
+        for (auto it : my_model.hashes(i).hash())
+            new_hash[it.first] = it.second;
+        hashes.emplace_back(new_hash);
+    }
+
+
+        // Optional:  Delete all global objects allocated by libprotobuf.
     google::protobuf::ShutdownProtobufLibrary();
 
 }
