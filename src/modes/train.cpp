@@ -12,7 +12,7 @@
 #include <sstream>
 
 void TrainMode::Run(const std::string& path, const int iterations, const float rate, const int depth,
-                    const std::string& output_file) {
+                    const float sample_rate, const std::string& output_file) {
     std::cout << "Train" << std::endl;
 
     std::cout << "Loading " << path << std::endl;
@@ -28,7 +28,7 @@ void TrainMode::Run(const std::string& path, const int iterations, const float r
     std::cout << "Size: " << pool.Size << std::endl;
 
     TModel model(std::move(binarizer));
-    model.Fit(std::move(pool), rate, iterations);
+    model.Fit(std::move(pool), rate, iterations, sample_rate);
 
     std::cout << "Writing to file: " << output_file << std::endl;
     model.Serialize(output_file, pool);

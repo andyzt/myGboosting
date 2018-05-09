@@ -3,6 +3,7 @@
 #include <fstream>
 
 
+
 static float MSE(const TTarget& target, const TTarget& test) {
     float mse = 0.0;
     for (size_t i = 0; i < target.size(); ++i) {
@@ -19,12 +20,12 @@ TModel::TModel(TBinarizer&& binarizer)
 
 }
 
-void TModel::Fit(TPool&& pool, float rate, float iterations) {
+void TModel::Fit(TPool&& pool, float rate, float iterations, float sample_rate) {
     LearningRate = rate;
     TTarget target(pool.Target);
 
     for (int iter = 0; iter < iterations; ++iter) {
-        Trees.push_back(TDecisionTree::Fit(pool, 6, 10, false));
+        Trees.push_back(TDecisionTree::Fit(pool, 6, 10, sample_rate, false));
 
         const auto& tree = Trees.back();
 

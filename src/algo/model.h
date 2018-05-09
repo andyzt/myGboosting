@@ -8,7 +8,7 @@ public:
     TModel();
     explicit TModel(TBinarizer&& binarizer);
 
-    void Fit(TPool&& pool, float rate, float iterations);
+    void Fit(TPool&& pool, float rate, float iterations, float sample_rate);
     TTarget Predict(const TPool& pool) const;
 //    TTarget Predict(const TRawPool& raw) const;
     void Serialize(const std::string& filename, const TPool& pool);

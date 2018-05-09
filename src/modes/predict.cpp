@@ -23,7 +23,7 @@ void PredictMode::Run(const std::string& path, const std::string& model_file, co
     std::vector<std::vector<float>> splits;
     std::vector<std::unordered_map<std::string, size_t>> hashes;
     model.DeSerialize(model_file, hashes, splits);
-    
+
     pool = binarizer.BinarizeTestData(LoadTestingPool(path, hashes), splits);
 
     std::cout << "Done" << std::endl;

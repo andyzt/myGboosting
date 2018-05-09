@@ -24,7 +24,7 @@ using TNodes = std::vector<TDecisionTreeNode>;
 
 class TDecisionTree {
 public:
-    static TDecisionTree Fit(const TPool& pool, size_t maxDepth, size_t minCount, bool verbose);
+    static TDecisionTree Fit(const TPool& pool, size_t maxDepth, size_t minCount, float sample_rate, bool verbose);
     float Predict(const TFeatureRow& data) const;
 
 private:

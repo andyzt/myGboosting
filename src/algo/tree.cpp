@@ -1,7 +1,7 @@
 #include "tree.h"
 
 #include <numeric>
-
+#include <random>
 
 bool TDecisionTreeNode::IsLeaf() const {
     return Leaf;
@@ -22,9 +22,17 @@ TDecisionTreeNode TDecisionTreeNode::Terminate(const TPool& pool, TMask& mask) {
     return node;
 }
 
-TDecisionTree TDecisionTree::Fit(const TPool& pool, size_t maxDepth, size_t minCount, bool verbose) {
+TDecisionTree TDecisionTree::Fit(const TPool& pool, size_t maxDepth, size_t minCount, float sample_rate, bool verbose) {
     TDecisionTree tree;
     TMask mask(pool.Size, 1);
+
+    std::random_device rd{}; // use to seed the rng
+    std::mt19937 rng{rd()}; // rng
+    std::bernoulli_distribution d(sample_rate);
+    for (int i = 0; i < pool.Size; ++i) {
+        mask[i] = d(rng);
+    }
+
     FitImpl(tree, 0, pool, mask, maxDepth, minCount, verbose);
     return tree;
 
