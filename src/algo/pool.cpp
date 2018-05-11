@@ -164,7 +164,8 @@ TRawPool LoadTestingPool(const std::string& path, std::vector<std::unordered_map
         throw std::length_error("Empty file");
     }
 
-    pool.Target = std::move(pool.RawFeatures.back());
+    // we have no target in testing dataset
+    //pool.Target = std::move(pool.RawFeatures.back());
     pool.RawFeatures.pop_back();
 
     return pool;

@@ -9,8 +9,6 @@
 
 
 int main(int argc, char** argv) {
-    //аналогично LightGBM у нас будут функции LoadData, Train и Predict
-
     args::ArgumentParser parser("mini Gradient Boosting utility");
     args::Group commands(parser, "commands");
     args::Command fit(commands, "fit", "Builds model based on provided learning dataset and writes it in output file");
@@ -25,7 +23,8 @@ int main(int argc, char** argv) {
     args::ValueFlag<std::string> target_column(arguments, "column name", "target column name", { "target" });
     args::ValueFlag<int> iterations(arguments, "iterations amount", "number of trees in ensemble", { "iterations" }, 100);
     args::ValueFlag<float> learning_rate(arguments, "learning-rate", "trees regularization", { "learning-rate" }, 1.0);
-    args::ValueFlag<float> sample_rate(arguments, "sample-rate", "amount of rows for each tree", { "sample-rate" }, 0.66);
+    args::ValueFlag<float> sample_rate(arguments, "sample-rate",
+                                       "percentage of rows for each tree (0 to 1.0)", { "sample-rate" }, 0.66);
     args::ValueFlag<int> depth(arguments, "tree depth", "decision tree max depth", { "depth" }, 6);
     args::ValueFlag<int> max_bins(arguments, "humber of bins", "max number of bins in histogram", { "max_bins" }, 10);
     args::ValueFlag<int> min_leaf_count(arguments, "min leaf size",
@@ -36,10 +35,35 @@ int main(int argc, char** argv) {
     try {
         parser.ParseCLI(argc, argv);
         if (fit) {
+            if (args::get(input_file) == "") {
+                std::cout << "input file missing: " + input_file.Name() << std::endl;
+                return 1;
+            }
+
+            if (args::get(output_file) == "") {
+                std::cout << "output file missing: " + output_file.Name() << std::endl;
+                return 1;
+            }
+
             TrainMode::Run(args::get(input_file), args::get(iterations), args::get(learning_rate), args::get(depth),
                            args::get(sample_rate), args::get(max_bins), args::get(min_leaf_count),
                            args::get(output_file));
         } else if (predict) {
+            if (args::get(input_file) == "") {
+                std::cout << "input file missing: " + input_file.Name() << std::endl;
+                return 1;
+            }
+
+            if (args::get(model_file) == "") {
+                std::cout << "model file missing: " + model_file.Name() << std::endl;
+                return 1;
+            }
+
+            if (args::get(output_file) == "") {
+                std::cout << "output file missing: " + output_file.Name() << std::endl;
+                return 1;
+            }
+
             PredictMode::Run(args::get(input_file), args::get(model_file), args::get(output_file));
         }
     }

@@ -52,7 +52,8 @@ TPool TBinarizer::BinarizeTestData(TRawPool&& raw, std::vector<std::vector<float
 
     TPool pool;
     pool.Names = std::move(raw.Names);
-    pool.Target = std::move(raw.Target);
+    //we have no target in testing dataset
+    //pool.Target = pool.Target;
     pool.Size = raw.RawFeatures[0].size();
 
     pool.Hashes = std::move(raw.Hashes);
