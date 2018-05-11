@@ -8,8 +8,8 @@ public:
     TModel();
     explicit TModel(TBinarizer&& binarizer);
 
-    void Fit(TPool&& pool, float rate, float iterations, float sample_rate, int depth, int min_leaf_count);
-    TTarget Predict(const TPool& pool) const;
+    void Fit(TRawPool&& pool, float rate, float iterations, float sample_rate, int depth, int min_leaf_count, int max_bins);
+    TTarget Predict(TRawPool& pool) const;
 //    TTarget Predict(const TRawPool& raw) const;
     void Serialize(const std::string& filename, const TPool& pool);
     void DeSerialize(const std::string& filename,
@@ -18,7 +18,7 @@ public:
 
 private:
     float LearningRate;
-    TBinarizer Binarizer;
+    //TBinarizer Binarizer;
     std::vector<TDecisionTree> Trees;
 };
 

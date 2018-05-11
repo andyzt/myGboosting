@@ -2,6 +2,7 @@
 
 #include <numeric>
 #include <random>
+#include <set>
 
 bool TDecisionTreeNode::IsLeaf() const {
     return Leaf;
@@ -22,6 +23,7 @@ TDecisionTreeNode TDecisionTreeNode::Terminate(const TPool& pool, TMask& mask) {
     return node;
 }
 
+/*
 TDecisionTree TDecisionTree::Fit(const TPool& pool, size_t maxDepth, size_t minCount, float sample_rate, bool verbose) {
     TDecisionTree tree;
     TMask mask(pool.Size, 1);
@@ -37,7 +39,181 @@ TDecisionTree TDecisionTree::Fit(const TPool& pool, size_t maxDepth, size_t minC
     return tree;
 
 }
+*/
 
+float CalcSplitValue(const TRawFeature& feature, const TTarget& target, const TMask& mask, float split, int depth) {
+    auto N = target.size();
+
+    TMask mask1 = mask;
+    TMask mask2 = mask;
+
+    depth = 1 << (depth+1);
+
+    std::vector<float> sums(depth, 0.0);
+    std::vector<int> counters(depth, 0);
+
+    size_t total = 0;
+    for (size_t i = 0; i < N; ++i) {
+        if (!mask[i]) {
+            continue;
+        }
+
+        if (feature[i] >= split) {
+            ++counters[mask[i] << 1];
+            sums[mask[i] << 1] += target[i];
+        } else {
+            ++counters[(mask[i] << 1) - 1];
+            sums[(mask[i] << 1) - 1] += target[i];
+        }
+
+        total++;
+    }
+
+    std::vector<float> means(depth, 0.0);
+
+    for (int j = 0; j < depth; ++j) {
+        means[j] = sums[j] / counters[j];
+    }
+
+    std::vector<float> variances(depth, 0.0);
+    for (size_t i = 0; i < N; ++i) {
+        if (feature[i] >= split) {
+            float val = target[i] - means[mask[i] << 1];
+            variances[mask[i] << 1] += val * val;
+        } else {
+            float val = target[i] - means[(mask[i] << 1) - 1];
+            variances[(mask[i] << 1) - 1] += val * val;
+        }
+
+    }
+
+    float total_variance = 0.0;
+
+    for (int k = 0; k < depth; ++k) {
+        total_variance += variances[k]*counters[k];
+    }
+
+    return total_variance;
+}
+
+TDecisionTree TDecisionTree::Fit(const TRawPool& pool, size_t maxDepth, size_t minCount, float sample_rate, int max_bins,
+                                 std::vector<std::vector<float>> bounds, bool verbose) {
+    TDecisionTree tree;
+    size_t pool_size = pool.RawFeatures[0].size();
+    TMask mask(pool_size, 1);
+
+    std::random_device rd{}; // use to seed the rng
+    std::mt19937 rng{rd()}; // rng
+    std::bernoulli_distribution d(sample_rate);
+    for (int i = 0; i < pool_size; ++i) {
+        mask[i] = d(rng);
+    }
+
+    std::set<int> chosen_features;
+
+    for (int depth = 0; depth < maxDepth; ++depth) {
+        float minVariance = std::numeric_limits<float>::max();
+        int minFeatureId;
+        float minSplit;
+        for (int featureId = 0; featureId < pool.RawFeatures.size(); ++featureId) {
+            if (chosen_features.find(featureId) != chosen_features.end())
+                continue;
+            for (const float bound : bounds[featureId]) {
+                float curVariance = CalcSplitValue(pool.RawFeatures[featureId], pool.Target, mask, bound, depth);
+                if (curVariance < minVariance) {
+                    minVariance = curVariance;
+                    minFeatureId = featureId;
+                    minSplit = bound;
+                }
+            }
+        }
+        chosen_features.insert({minFeatureId});
+        tree.splits.emplace_back(minFeatureId, minSplit);
+
+        for (size_t i = 0; i < pool_size; ++i) {
+            if (!mask[i]) {
+                continue;
+            }
+
+            if (pool.RawFeatures[minFeatureId][i] >= minSplit) {
+                mask[i] <<= 1;
+            } else {
+                mask[i] = (mask[i] << 1) - 1;
+            }
+            //total++;
+            //count1 += mask1[i];
+            //count2 += mask2[i];
+        }
+    }
+
+
+
+    std::vector<float> sums(maxDepth, 0.0);
+    std::vector<int> counters(maxDepth, 0);
+
+    for (size_t i = 0; i < pool_size; ++i) {
+        if (!mask[i]) {
+            continue;
+        }
+            ++counters[mask[i]];
+            sums[mask[i]] += pool.Target[i];
+
+    }
+
+    tree.values.resize(1 << maxDepth, 0.0);
+    for (int j = 0; j < maxDepth; ++j) {
+        tree.values[j] = sums[j] / counters[j];
+    }
+
+    return tree;
+}
+
+/*
+float TDecisionTree::Predict(const TFeatureRow& data) const {
+    int idx = 1;
+    for (const auto& it : splits) {
+        if (data[it.first] >= it.second) {
+            idx <<= 1;
+        } else {
+            idx = (idx << 1) - 1;
+        }
+    }
+    return values[idx];
+}
+*/
+
+std::vector<int> TDecisionTree::GetPredictionIndices(TRawPool& pool) const {
+    std::vector<int> predictions_idx(pool.Target.size(), 1);
+    for (int i = 0; i < pool.Target.size(); ++i) {
+        for (const auto& it : splits) {
+            if (pool.RawFeatures[it.first][i] >= it.second) {
+                predictions_idx[i] <<= 1;
+            } else {
+                predictions_idx[i] = (predictions_idx[i] << 1) - 1;
+            }
+        }
+    }
+
+    return predictions_idx;
+}
+
+void TDecisionTree::AddPredict(TRawPool& pool, float lrate, TTarget& predictions) const {
+    std::vector<int> predictions_idx = GetPredictionIndices(pool);
+
+    for (int j = 0; j < pool.Target.size(); ++j) {
+        predictions[j] += lrate * values[predictions_idx[j]];
+    }
+}
+
+void TDecisionTree::ModifyTargetByPredict(TRawPool&& pool, float lrate) const {
+    std::vector<int> predictions_idx = GetPredictionIndices(pool);
+
+    for (int j = 0; j < pool.Target.size(); ++j) {
+        pool.Target[j] -= lrate * values[predictions_idx[j]];
+    }
+}
+
+/*
 size_t TDecisionTree::FitImpl(TDecisionTree& tree,
                               size_t depth,
                               const TPool& pool,
@@ -102,48 +278,4 @@ float TDecisionTree::Predict(const TFeatureRow& data) const {
 
     return Nodes[nodeId].Value;
 }
-
-void TestDecisionTree() {
-    TDecisionTree tree;
-
-    {
-        TDecisionTreeNode node;
-        node.FeatureId = 1;
-        node.Left = 1;
-        node.Right = 2;
-        tree.Nodes.push_back(node);
-    }
-
-    {
-        TDecisionTreeNode node;
-        node.FeatureId = 0;
-        node.Left = 3;
-        node.Right = 4;
-        tree.Nodes.push_back(node);
-    }
-
-    {
-        TDecisionTreeNode node;
-        node.Leaf = true;
-        node.Value = 10;
-        tree.Nodes.push_back(node);
-    }
-
-    {
-        TDecisionTreeNode node;
-        node.Leaf = true;
-        node.Value = 0;
-        tree.Nodes.push_back(node);
-    }
-
-    {
-        TDecisionTreeNode node;
-        node.Leaf = true;
-        node.Value = -10;
-        tree.Nodes.push_back(node);
-    }
-
-    TFeatureRow data = {0, 1};
-
-    std::cout << tree.Predict(data) << std::endl;
-}
+*/

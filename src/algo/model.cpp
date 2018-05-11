@@ -1,6 +1,7 @@
 #include "model.h"
 #include "proto/model.pb.h"
 #include <fstream>
+#include "histogram.h"
 
 
 
@@ -15,35 +16,42 @@ static float MSE(const TTarget& target, const TTarget& test) {
 
 TModel::TModel() {}
 
+/*
 TModel::TModel(TBinarizer&& binarizer)
     : Binarizer(std::forward<TBinarizer>(binarizer)) {
 
 }
+*/
 
-void TModel::Fit(TPool&& pool, float rate, float iterations, float sample_rate, int depth, int min_leaf_count) {
+void TModel::Fit(TRawPool&& pool, float rate, float iterations, float sample_rate, int depth, int min_leaf_count,
+                 int max_bins) {
     LearningRate = rate;
     TTarget target(pool.Target);
 
+    std::vector<std::vector<float>> bounds;
+
+    for (int l = 0; l < pool.RawFeatures.size(); ++l) {
+        bounds.emplace_back(BuildBinBounds(pool.RawFeatures[l], max_bins));
+    }
+
     for (int iter = 0; iter < iterations; ++iter) {
-        Trees.push_back(TDecisionTree::Fit(pool, depth, min_leaf_count, sample_rate, false));
+        Trees.push_back(TDecisionTree::Fit(pool, depth, min_leaf_count, sample_rate, max_bins, bounds, false));
 
         const auto& tree = Trees.back();
 
         //replacing our target by gradient of current step
-        for (size_t i = 0; i < pool.Size; ++i) {
-            pool.Target[i] -= LearningRate*tree.Predict(pool.Rows[i]);
-        }
+        tree.ModifyTargetByPredict(std::forward<TRawPool>(pool), LearningRate);
+        //pool.Target[i] -= LearningRate*tree.Predict(pool.Rows[i]);
 
         std::cout << "MSE = " << MSE(target, Predict(pool)) << std::endl;
+
     }
 }
 
-TTarget TModel::Predict(const TPool& pool) const {
-    TTarget predictions(pool.Size, 0.0);
+TTarget TModel::Predict(TRawPool& pool) const {
+    TTarget predictions(pool.Target.size(), 0.0);
     for (const auto& tree : Trees) {
-        for (size_t i = 0; i < pool.Size; ++i) {
-            predictions[i] += LearningRate*tree.Predict(pool.Rows[i]);
-        }
+            tree.AddPredict(pool, LearningRate, predictions);
     }
 
     return predictions;
@@ -53,6 +61,7 @@ TTarget TModel::Predict(const TPool& pool) const {
 //    return TTarget();
 //}
 
+/*
 void TModel::Serialize(const std::string& filename, const TPool& pool) {
     // Verify that the version of the library that we linked against is
     // compatible with the version of the headers we compiled against.
@@ -160,3 +169,4 @@ void TModel::DeSerialize(const std::string& filename,
     google::protobuf::ShutdownProtobufLibrary();
 
 }
+ */

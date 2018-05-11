@@ -18,19 +18,20 @@ void TrainMode::Run(const std::string& path, const int iterations, const float l
 
     std::cout << "Loading " << path << std::endl;
 
-    TPool pool;
-    TBinarizer binarizer;
 
-    pool = binarizer.Binarize(LoadTrainingPool(path), max_bins);
+    //TBinarizer binarizer;
+
+    TRawPool pool = LoadTrainingPool(path);
 
     std::cout << "Done" << std::endl;
-    std::cout << "Raw features: " << pool.RawFeatureCount << std::endl;
-    std::cout << "Binarized features: " << pool.BinarizedFeatureCount << std::endl;
-    std::cout << "Size: " << pool.Size << std::endl;
+    std::cout << "Raw features: " << pool.RawFeatures.size() << std::endl;
+    //std::cout << "Binarized features: " << pool.BinarizedFeatureCount << std::endl;
+    std::cout << "Size: " << pool.RawFeatures[0].size() << std::endl;
 
-    TModel model(std::move(binarizer));
-    model.Fit(std::move(pool), lrate, iterations, sample_rate, depth, min_leaf_count);
+    TModel model;
+    model.Fit(std::move(pool), lrate, iterations, sample_rate, depth, min_leaf_count, max_bins);
 
     std::cout << "Writing to file: " << output_file << std::endl;
-    model.Serialize(output_file, pool);
+    //model.Serialize(output_file, pool);
+
 }
