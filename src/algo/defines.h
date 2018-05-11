@@ -19,7 +19,7 @@ using TFeatures = std::vector<TFeature>;
 using TTarget = std::vector<float>;
 
 // used for tree fitting
-using TMask = std::vector<char>;
+using TMask = std::vector<int16_t>;
 
 // feature names
 using TNames = std::vector<std::string>;

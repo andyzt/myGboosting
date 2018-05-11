@@ -25,7 +25,7 @@ using TNodes = std::vector<TDecisionTreeNode>;
 class TDecisionTree {
 public:
     static TDecisionTree Fit(const TRawPool& pool, size_t maxDepth, size_t minCount, float sample_rate,
-                             int max_bins, std::vector<std::vector<float>> bounds, bool verbose);
+                             int max_bins, std::vector<std::vector<float>>& bounds, bool verbose);
     //float Predict(const TFeatureRow& data) const;
     void AddPredict(TRawPool& pool, float lrate, TTarget& predictions) const;
     void ModifyTargetByPredict(TRawPool&& pool, float lrate) const;
