@@ -11,8 +11,9 @@
 #include <numeric>
 #include <sstream>
 
-void TrainMode::Run(const std::string& path, const int iterations, const float rate, const int depth,
-                    const float sample_rate, const std::string& output_file) {
+void TrainMode::Run(const std::string& path, const int iterations, const float lrate, const int depth,
+                    const float sample_rate, const int max_bins, const int min_leaf_count,
+                    const std::string& output_file) {
     std::cout << "Train" << std::endl;
 
     std::cout << "Loading " << path << std::endl;
@@ -20,7 +21,7 @@ void TrainMode::Run(const std::string& path, const int iterations, const float r
     TPool pool;
     TBinarizer binarizer;
 
-    pool = binarizer.Binarize(LoadTrainingPool(path));
+    pool = binarizer.Binarize(LoadTrainingPool(path), max_bins);
 
     std::cout << "Done" << std::endl;
     std::cout << "Raw features: " << pool.RawFeatureCount << std::endl;
@@ -28,7 +29,7 @@ void TrainMode::Run(const std::string& path, const int iterations, const float r
     std::cout << "Size: " << pool.Size << std::endl;
 
     TModel model(std::move(binarizer));
-    model.Fit(std::move(pool), rate, iterations, sample_rate);
+    model.Fit(std::move(pool), lrate, iterations, sample_rate, depth, min_leaf_count);
 
     std::cout << "Writing to file: " << output_file << std::endl;
     model.Serialize(output_file, pool);

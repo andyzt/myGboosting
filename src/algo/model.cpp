@@ -20,12 +20,12 @@ TModel::TModel(TBinarizer&& binarizer)
 
 }
 
-void TModel::Fit(TPool&& pool, float rate, float iterations, float sample_rate) {
+void TModel::Fit(TPool&& pool, float rate, float iterations, float sample_rate, int depth, int min_leaf_count) {
     LearningRate = rate;
     TTarget target(pool.Target);
 
     for (int iter = 0; iter < iterations; ++iter) {
-        Trees.push_back(TDecisionTree::Fit(pool, 6, 10, sample_rate, false));
+        Trees.push_back(TDecisionTree::Fit(pool, depth, min_leaf_count, sample_rate, false));
 
         const auto& tree = Trees.back();
 

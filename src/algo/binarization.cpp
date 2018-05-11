@@ -9,7 +9,7 @@ std::vector<float> BuildSplits(const TRawFeature& data, size_t parts) {
     return BuildBinBounds(data, parts);
 }
 
-TPool TBinarizer::Binarize(TRawPool&& raw) {
+TPool TBinarizer::Binarize(TRawPool&& raw, int max_bins) {
     TPool pool;
     pool.Names = std::move(raw.Names);
     pool.Target = std::move(raw.Target);
@@ -25,7 +25,7 @@ TPool TBinarizer::Binarize(TRawPool&& raw) {
         if (!pool.Hashes[rawFeatureId].empty()) {
             binarized = BinarizeCatFeature(rawColumn, pool.Hashes[rawFeatureId].size());
         } else {
-            auto splits = BuildSplits(raw.RawFeatures[rawFeatureId], 10);
+            auto splits = BuildSplits(raw.RawFeatures[rawFeatureId], max_bins);
             binarized = BinarizeFloatFeature(rawColumn, splits);
             Splits.emplace_back(std::move(splits));
         }

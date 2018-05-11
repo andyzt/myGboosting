@@ -7,7 +7,7 @@
 
 class TBinarizer {
 public:
-    TPool Binarize(TRawPool&& raw);
+    TPool Binarize(TRawPool&& raw, int max_bins);
     TPool BinarizeTestData(TRawPool&& raw, std::vector<std::vector<float>>& splits);
     //TFeatureRow Binarize(size_t featureId, const std::string& value) const;
     //TFeatureRow Binarize(size_t featureId, float value) const;
