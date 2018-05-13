@@ -31,7 +31,7 @@ int main(int argc, char** argv) {
                                         "min number of samples in leaf node", { "min_leaf_count" }, 10);
     args::HelpFlag h(arguments, "help", "help", { 'h', "help" });
     //args::PositionalList<std::string> pathsList(arguments, "paths", "files to commit");
-
+    std::cout << "Start" << std::endl;
     try {
         parser.ParseCLI(argc, argv);
         if (fit) {
