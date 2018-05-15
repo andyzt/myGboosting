@@ -1,5 +1,5 @@
 #include "model.h"
-#include "proto/model.pb.h"
+#include "src/proto/model.pb.h"
 #include <fstream>
 #include "histogram.h"
 
