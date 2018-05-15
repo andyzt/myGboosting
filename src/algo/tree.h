@@ -11,8 +11,15 @@ public:
     size_t FeatureId = 0;
     size_t Left = 0;
     size_t Right = 0;
+    size_t Parent = 0;
+
     bool Leaf = false;
     float Value = 0.0;
+    TSplit split;
+    std::vector<THistogram> hists;
+    std::vector<uint32_t> row_indices;
+    std::vector<size_t> l_count;
+    std::vector<size_t> r_count;
 
 public:
     bool IsLeaf() const;
@@ -24,8 +31,9 @@ using TNodes = std::vector<TDecisionTreeNode>;
 
 class TDecisionTree {
 public:
-    static TDecisionTree Fit(const TRawPool& pool, size_t maxDepth, size_t minCount, float sample_rate,
-                             int max_bins, std::vector<std::vector<float>>& bounds, bool verbose);
+
+    static TDecisionTree FitHist(const TRawPool& pool, size_t maxDepth, size_t minCount, float sample_rate,
+                             std::vector<std::vector<float>>& bounds, bool verbose);
     //float Predict(const TFeatureRow& data) const;
     void AddPredict(TRawPool& pool, float lrate, TTarget& predictions) const;
     void ModifyTargetByPredict(TRawPool&& pool, float lrate) const;
@@ -41,9 +49,12 @@ private:
                           bool verbose);
 
 public:
-    //TNodes Nodes;
+    TNodes Nodes;
     std::vector<std::pair<int,float>> splits;
     std::vector<float> values;
 };
 
 void TestDecisionTree();
+
+TSplit CalcSplitHistogram(TNodes &Nodes, const std::vector<size_t>& cur_level_nodes,
+                          size_t featureId, size_t binCount);

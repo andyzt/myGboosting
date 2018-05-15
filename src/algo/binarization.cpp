@@ -39,7 +39,7 @@ TPool TBinarizer::Binarize(TRawPool&& raw, int max_bins) {
     pool.RawFeatureCount = raw.RawFeatures.size();
     pool.BinarizedFeatureCount = pool.Features.size();
 
-    pool.Rows = SetupTestData(pool);
+    //pool.Rows = SetupTestData(pool);
 
     return pool;
 }
@@ -83,7 +83,7 @@ TPool TBinarizer::BinarizeTestData(TRawPool&& raw, std::vector<std::vector<float
     pool.RawFeatureCount = raw.RawFeatures.size();
     pool.BinarizedFeatureCount = pool.Features.size();
 
-    pool.Rows = SetupTestData(pool);
+    //pool.Rows = SetupTestData(pool);
 
     return pool;
 }

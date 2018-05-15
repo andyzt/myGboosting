@@ -56,7 +56,7 @@ std::vector<float> BuildBinBounds(const TRawFeature& data, size_t num_bins) {
     return bounds;
 }
 
-THistogram BuildHistogram(const TFeature& data, const TTarget& target, const TMask& mask,
+THistogram BuildHistogram(const TRawFeature& data, const TTarget& target, const std::vector<uint32_t> row_indices,
                           const std::vector<float>& bounds) {
 
     THistogram histogram;
@@ -68,13 +68,10 @@ THistogram BuildHistogram(const TFeature& data, const TTarget& target, const TMa
         histogram.push_back(new_bin);
     }
 
-    for (size_t i = 0; i < data.size(); ++i) {
-        if (!mask[i]) {
-            continue;
-        }
-        int bin = FindBin(histogram, data[i]);
+    for (size_t idx :row_indices) {
+        int bin = FindBin(histogram, data[idx]);
         ++histogram[bin].cnt;
-        histogram[bin].target_sum += target[i];
+        histogram[bin].target_sum += target[idx];
     }
     return histogram;
 }

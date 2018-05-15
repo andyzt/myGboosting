@@ -170,3 +170,40 @@ TRawPool LoadTestingPool(const std::string& path, std::vector<std::unordered_map
 
     return pool;
 }
+
+TPool ConvertPoolToBinNumbers(TRawPool&& raw, int max_bins) {
+    TPool pool;
+    pool.Names = std::move(raw.Names);
+    pool.Target = std::move(raw.Target);
+    pool.Size = raw.RawFeatures[0].size();
+
+    pool.Hashes = std::move(raw.Hashes);
+
+    auto rawFeatureCount = raw.RawFeatures.size();
+
+    /*
+    for (size_t rawFeatureId = 0; rawFeatureId < rawFeatureCount; ++rawFeatureId) {
+        TFeatures binarized;
+        const auto& rawColumn = raw.RawFeatures[rawFeatureId];
+        if (!pool.Hashes[rawFeatureId].empty()) {
+            binarized = BinarizeCatFeature(rawColumn, pool.Hashes[rawFeatureId].size());
+        } else {
+            auto splits = BuildSplits(raw.RawFeatures[rawFeatureId], max_bins);
+            binarized = BinarizeFloatFeature(rawColumn, splits);
+            Splits.emplace_back(std::move(splits));
+        }
+
+        for (auto& column : binarized) {
+            pool.Features.emplace_back(std::move(column));
+            BinarizedToRaw.push_back(rawFeatureId);
+        }
+    }
+
+    pool.RawFeatureCount = raw.RawFeatures.size();
+    pool.BinarizedFeatureCount = pool.Features.size();
+
+    pool.Rows = SetupTestData(pool);
+     */
+
+    return pool;
+}

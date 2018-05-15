@@ -30,12 +30,12 @@ void TModel::Fit(TRawPool&& pool, float rate, float iterations, float sample_rat
 
     std::vector<std::vector<float>> bounds;
 
-    for (int l = 0; l < pool.RawFeatures.size(); ++l) {
+    for (size_t l = 0; l < pool.RawFeatures.size(); ++l) {
         bounds.emplace_back(BuildBinBounds(pool.RawFeatures[l], max_bins));
     }
 
     for (int iter = 0; iter < iterations; ++iter) {
-        Trees.push_back(TDecisionTree::Fit(pool, depth, min_leaf_count, sample_rate, max_bins, bounds, false));
+        Trees.push_back(TDecisionTree::FitHist(pool, depth, min_leaf_count, sample_rate, bounds, false));
 
         const auto& tree = Trees.back();
 

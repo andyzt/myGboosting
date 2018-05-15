@@ -16,7 +16,7 @@ public:
 class TPool {
 public:
     TFeatures Features;
-    TFeatureRows Rows;
+    //TFeatureRows Rows;
     TTarget Target;
     TNames Names;
     size_t RawFeatureCount = 0;
