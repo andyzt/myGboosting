@@ -23,24 +23,26 @@ TModel::TModel(TBinarizer&& binarizer)
 }
 */
 
-void TModel::Fit(TRawPool&& pool, float rate, float iterations, float sample_rate, int depth, int min_leaf_count,
+void TModel::Fit(const TRawPool& raw_pool, float rate, float iterations, float sample_rate, int depth, int min_leaf_count,
                  int max_bins) {
     LearningRate = rate;
-    TTarget target(pool.Target);
+    TTarget target(raw_pool.Target);
 
-    std::vector<std::vector<float>> bounds;
+    std::vector<std::vector<float>> all_bounds;
 
-    for (size_t l = 0; l < pool.RawFeatures.size(); ++l) {
-        bounds.emplace_back(BuildBinBounds(pool.RawFeatures[l], max_bins));
+    for (size_t l = 0; l < raw_pool.RawFeatures.size(); ++l) {
+        all_bounds.emplace_back(BuildBinBounds(raw_pool.RawFeatures[l], max_bins));
     }
 
+    TPool pool = ConvertPoolToBinNumbers(raw_pool, all_bounds);
+
     for (int iter = 0; iter < iterations; ++iter) {
-        Trees.push_back(TDecisionTree::FitHist(pool, depth, min_leaf_count, sample_rate, bounds, false));
+        Trees.push_back(TDecisionTree::FitHist(pool, depth, min_leaf_count, sample_rate, all_bounds, false));
 
         const auto& tree = Trees.back();
 
         //replacing our target by gradient of current step
-        tree.ModifyTargetByPredict(std::forward<TRawPool>(pool), LearningRate);
+        tree.ModifyTargetByPredict(std::forward<TPool>(pool), LearningRate);
         //pool.Target[i] -= LearningRate*tree.Predict(pool.Rows[i]);
 
         std::cout << "MSE = " << MSE(target, Predict(pool)) << std::endl;
@@ -48,7 +50,7 @@ void TModel::Fit(TRawPool&& pool, float rate, float iterations, float sample_rat
     }
 }
 
-TTarget TModel::Predict(TRawPool& pool) const {
+TTarget TModel::Predict(TPool& pool) const {
     TTarget predictions(pool.Target.size(), 0.0);
     for (const auto& tree : Trees) {
             tree.AddPredict(pool, LearningRate, predictions);

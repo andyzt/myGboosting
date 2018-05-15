@@ -5,6 +5,7 @@
 #include <sstream>
 #include <algorithm>
 #include <unordered_map>
+#include "histogram.h"
 
 TRawPool LoadTrainingPool(const std::string& path) {
     TRawPool pool;
@@ -171,7 +172,7 @@ TRawPool LoadTestingPool(const std::string& path, std::vector<std::unordered_map
     return pool;
 }
 
-TPool ConvertPoolToBinNumbers(TRawPool&& raw, int max_bins) {
+TPool ConvertPoolToBinNumbers(const TRawPool& raw, std::vector<std::vector<float>> bounds) {
     TPool pool;
     pool.Names = std::move(raw.Names);
     pool.Target = std::move(raw.Target);
@@ -181,29 +182,16 @@ TPool ConvertPoolToBinNumbers(TRawPool&& raw, int max_bins) {
 
     auto rawFeatureCount = raw.RawFeatures.size();
 
-    /*
     for (size_t rawFeatureId = 0; rawFeatureId < rawFeatureCount; ++rawFeatureId) {
-        TFeatures binarized;
         const auto& rawColumn = raw.RawFeatures[rawFeatureId];
-        if (!pool.Hashes[rawFeatureId].empty()) {
-            binarized = BinarizeCatFeature(rawColumn, pool.Hashes[rawFeatureId].size());
-        } else {
-            auto splits = BuildSplits(raw.RawFeatures[rawFeatureId], max_bins);
-            binarized = BinarizeFloatFeature(rawColumn, splits);
-            Splits.emplace_back(std::move(splits));
+        TFeature column(rawColumn.size());
+        for (size_t i = 0; i < pool.Size; ++i) {
+            column[i] = FindBin(bounds[rawFeatureId], rawColumn[i]);
         }
-
-        for (auto& column : binarized) {
-            pool.Features.emplace_back(std::move(column));
-            BinarizedToRaw.push_back(rawFeatureId);
-        }
+        pool.Features.emplace_back(std::move(column));
     }
 
     pool.RawFeatureCount = raw.RawFeatures.size();
-    pool.BinarizedFeatureCount = pool.Features.size();
-
-    pool.Rows = SetupTestData(pool);
-     */
 
     return pool;
 }

@@ -13,7 +13,8 @@ public:
     size_t Right = 0;
     size_t Parent = 0;
 
-    bool Leaf = false;
+
+    bool is_empty = false;
     float Value = 0.0;
     TSplit split;
     std::vector<THistogram> hists;
@@ -32,14 +33,14 @@ using TNodes = std::vector<TDecisionTreeNode>;
 class TDecisionTree {
 public:
 
-    static TDecisionTree FitHist(const TRawPool& pool, size_t maxDepth, size_t minCount, float sample_rate,
-                             std::vector<std::vector<float>>& bounds, bool verbose);
+    static TDecisionTree FitHist(const TPool& pool, size_t maxDepth, size_t minCount, float sample_rate,
+                             std::vector<std::vector<float>>& all_bounds, bool verbose);
     //float Predict(const TFeatureRow& data) const;
-    void AddPredict(TRawPool& pool, float lrate, TTarget& predictions) const;
-    void ModifyTargetByPredict(TRawPool&& pool, float lrate) const;
+    void AddPredict(TPool& pool, float lrate, TTarget& predictions) const;
+    void ModifyTargetByPredict(TPool&& pool, float lrate) const;
 
 private:
-    std::vector<int> GetPredictionIndices(TRawPool& pool) const;
+    std::vector<int> GetPredictionIndices(TPool& pool) const;
     static size_t FitImpl(TDecisionTree& tree,
                           size_t depth,
                           const TPool& pool,
@@ -50,7 +51,7 @@ private:
 
 public:
     TNodes Nodes;
-    std::vector<std::pair<int,float>> splits;
+    std::vector<std::pair<int, u_int8_t>> splits;
     std::vector<float> values;
 };
 
