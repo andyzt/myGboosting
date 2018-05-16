@@ -4,7 +4,15 @@ project(myGboosting)
 set(PROJECT_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src)
 message(${PROJECT_SOURCE_DIR})
 
+ADD_SUBDIRECTORY(src/proto)
+
+INCLUDE(FindProtobuf)
+FIND_PACKAGE(Protobuf REQUIRED)
+INCLUDE_DIRECTORIES(${PROTOBUF_INCLUDE_DIR})
+
 include_directories(${PROJECT_SOURCE_DIR})
+INCLUDE_DIRECTORIES(${CMAKE_CURRENT_BINARY_DIR})
+
 file(GLOB_RECURSE CURRENT_SOURCE_FILES
     ${PROJECT_SOURCE_DIR}/*.cpp
         ${PROJECT_SOURCE_DIR}/*.cc
@@ -17,8 +25,8 @@ set(SOURCE_FILES ${SOURCE_FILES} ${CURRENT_SOURCE_FILES})
 
 set(CMAKE_CXX_STANDARD 14)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14 -fsanitize=address -Wall -Wextra -Wpedantic")
-#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14  -Wall -Wextra -Wpedantic")
+# set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address")
 
 set(CMAKE_CXX_FLAGS_DEBUG "-g")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3")
@@ -26,3 +34,4 @@ set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 set(CMAKE_EXE_LINKER_FLAGS "-L/usr/local/lib -lprotobuf")
 
 add_executable(myGboosting ${SOURCE_FILES})
+TARGET_LINK_LIBRARIES(myGboosting proto ${PROTOBUF_LIBRARY}) 
