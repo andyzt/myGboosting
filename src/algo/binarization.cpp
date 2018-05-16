@@ -8,7 +8,7 @@
 std::vector<float> BuildSplits(const TRawFeature& data, size_t parts) {
     return BuildBinBounds(data, parts);
 }
-
+/*
 TPool TBinarizer::Binarize(TRawPool&& raw, int max_bins) {
     TPool pool;
     pool.Names = std::move(raw.Names);
@@ -39,7 +39,7 @@ TPool TBinarizer::Binarize(TRawPool&& raw, int max_bins) {
     pool.RawFeatureCount = raw.RawFeatures.size();
     pool.BinarizedFeatureCount = pool.Features.size();
 
-    pool.Rows = SetupTestData(pool);
+    //pool.Rows = SetupTestData(pool);
 
     return pool;
 }
@@ -83,10 +83,11 @@ TPool TBinarizer::BinarizeTestData(TRawPool&& raw, std::vector<std::vector<float
     pool.RawFeatureCount = raw.RawFeatures.size();
     pool.BinarizedFeatureCount = pool.Features.size();
 
-    pool.Rows = SetupTestData(pool);
+    //pool.Rows = SetupTestData(pool);
 
     return pool;
 }
+*/
 
 /*
 TFeatureRow TBinarizer::Binarize(size_t featureId, const std::string& value) const {
@@ -115,7 +116,7 @@ TFeatureRow TBinarizer::Binarize(size_t featureId, float value) const {
     }
     return vector;
 }
-*/
+
 TFeatures TBinarizer::BinarizeFloatFeature(const TRawFeature& data, std::vector<float> splits) {
     size_t length = data.size();
     std::vector<std::vector<char>> binarized(splits.size(), std::vector<char>(length, 0));
@@ -152,4 +153,4 @@ TFeatureRows TBinarizer::SetupTestData(const TPool& pool) const {
     return rows;
 }
 
-
+*/

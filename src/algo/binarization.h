@@ -14,9 +14,9 @@ public:
     std::vector<std::vector<float>> GetSplits();
 
 private:
-    TFeatures BinarizeFloatFeature(const TRawFeature& data, std::vector<float> splits);
-    TFeatures BinarizeCatFeature(const TRawFeature& data, size_t cats);
-    TFeatureRows SetupTestData(const TPool& pool) const;
+    //TFeatures BinarizeFloatFeature(const TRawFeature& data, std::vector<float> splits);
+    //TFeatures BinarizeCatFeature(const TRawFeature& data, size_t cats);
+    //TFeatureRows SetupTestData(const TPool& pool) const;
 
 private:
     std::vector<size_t> BinarizedToRaw;

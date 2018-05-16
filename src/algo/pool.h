@@ -16,7 +16,7 @@ public:
 class TPool {
 public:
     TFeatures Features;
-    TFeatureRows Rows;
+    //TFeatureRows Rows;
     TTarget Target;
     TNames Names;
     size_t RawFeatureCount = 0;
@@ -27,4 +27,5 @@ public:
 
 TRawPool LoadTrainingPool(const std::string& path);
 TRawPool LoadTestingPool(const std::string& path, std::vector<std::unordered_map<std::string, size_t>>& hashes);
+TPool ConvertPoolToBinNumbers(const TRawPool& raw, std::vector<std::vector<float>> bounds);
 

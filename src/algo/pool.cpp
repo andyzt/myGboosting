@@ -5,6 +5,7 @@
 #include <sstream>
 #include <algorithm>
 #include <unordered_map>
+#include "histogram.h"
 
 TRawPool LoadTrainingPool(const std::string& path) {
     TRawPool pool;
@@ -167,6 +168,30 @@ TRawPool LoadTestingPool(const std::string& path, std::vector<std::unordered_map
     // we have no target in testing dataset
     //pool.Target = std::move(pool.RawFeatures.back());
     pool.RawFeatures.pop_back();
+
+    return pool;
+}
+
+TPool ConvertPoolToBinNumbers(const TRawPool& raw, std::vector<std::vector<float>> bounds) {
+    TPool pool;
+    pool.Names = std::move(raw.Names);
+    pool.Target = std::move(raw.Target);
+    pool.Size = raw.RawFeatures[0].size();
+
+    pool.Hashes = std::move(raw.Hashes);
+
+    auto rawFeatureCount = raw.RawFeatures.size();
+
+    for (size_t rawFeatureId = 0; rawFeatureId < rawFeatureCount; ++rawFeatureId) {
+        const auto& rawColumn = raw.RawFeatures[rawFeatureId];
+        TFeature column(rawColumn.size());
+        for (size_t i = 0; i < pool.Size; ++i) {
+            column[i] = FindBin(bounds[rawFeatureId], rawColumn[i]);
+        }
+        pool.Features.emplace_back(std::move(column));
+    }
+
+    pool.RawFeatureCount = raw.RawFeatures.size();
 
     return pool;
 }
