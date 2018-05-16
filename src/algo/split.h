@@ -8,7 +8,7 @@ class TSplit {
 public:
     size_t FeatureId = 0;
     size_t bin_id = 0;
-    float variance = 0.0;
+    float gain = 0.0;
 };
 
 float Mean(const TTarget& data, const std::vector<char>& mask);
