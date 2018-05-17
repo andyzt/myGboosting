@@ -10,16 +10,13 @@ using TRawFeature = std::vector<float>;
 using TRawFeatures = std::vector<TRawFeature>;
 
 // binarized form of a feature
-using TFeature = std::vector<char>;
+using TFeature = std::vector<u_int8_t>;
 
 // several feature columns in a vector
 using TFeatures = std::vector<TFeature>;
 
 // target column
 using TTarget = std::vector<float>;
-
-// used for tree fitting
-using TMask = std::vector<char>;
 
 // feature names
 using TNames = std::vector<std::string>;
@@ -34,9 +31,8 @@ using TFeatureRow = std::vector<char>;
 using TFeatureRows = std::vector<TFeatureRow>;
 
 struct HistogramBin {
-    size_t cnt = 0;
-    float target_sum = 0;
-    float upper_bound;
+    size_t cumulative_cnt = 0;
+    double cumulative_sum = 0;
 };
 
 // histogram

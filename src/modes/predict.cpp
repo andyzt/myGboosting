@@ -11,38 +11,34 @@
 #include <numeric>
 #include <fstream>
 
-void PredictMode::Run(const std::string& path, const std::string& model_file, const std::string& output_file) {
-    std::cout << "Predict" << std::endl;
+void PredictMode::Run(const std::string& path,
+                      const std::string& model_file,
+                      const std::string& output_file,
+                      const bool verbose) {
+    if (verbose) {
+        std::cout << "Predict" << std::endl;
+        std::cout << "Loading Dataset" << path << std::endl;
+    }
+    TRawPool raw_pool = LoadTestingPool(path);
 
-    std::cout << "Loading Dataset" << path << std::endl;
-
-    TPool pool;
-    TBinarizer binarizer;
     TModel model;
 
-    std::vector<std::vector<float>> splits;
-    std::vector<std::unordered_map<std::string, size_t>> hashes;
-    model.DeSerialize(model_file, hashes, splits);
+    model.DeSerialize(model_file);
 
-    pool = binarizer.BinarizeTestData(LoadTestingPool(path, hashes), splits);
+    if (verbose) {
+        std::cout << "Done" << std::endl;
+        std::cout << "Raw features: " << raw_pool.RawFeatures.size() << std::endl;
+        std::cout << "Size: " << raw_pool.RawFeatures[0].size() << std::endl;
+    }
 
-    std::cout << "Done" << std::endl;
-    std::cout << "Raw features: " << pool.RawFeatureCount << std::endl;
-    std::cout << "Binarized features: " << pool.BinarizedFeatureCount << std::endl;
-    std::cout << "Size: " << pool.Size << std::endl;
+    auto predictions = model.PredictOnTestData(raw_pool);
 
-    //TModel model(std::move(binarizer));
-
-
-    auto predictions = model.Predict(std::move(pool));
-
-    std::cout << "Writing to file: " << output_file << std::endl;
+    std::cout << "Writing predictions to file: " << output_file << std::endl;
 
     std::ofstream out(output_file);
     for (const auto& val : predictions) {
-        //std::cout << val << std::endl;
         out << val << std::endl;
     }
 
     out.close();
-}
+ }

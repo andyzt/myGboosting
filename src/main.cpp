@@ -1,8 +1,7 @@
 #include "lib/args.hxx"
-#include "lib/csv.h"
 #include "modes/predict.h"
 #include "modes/train.h"
-
+#include <omp.h>
 
 #include <iostream>
 #include <fstream>
@@ -24,16 +23,20 @@ int main(int argc, char** argv) {
     args::ValueFlag<int> iterations(arguments, "iterations amount", "number of trees in ensemble", { "iterations" }, 100);
     args::ValueFlag<float> learning_rate(arguments, "learning-rate", "trees regularization", { "learning-rate" }, 1.0);
     args::ValueFlag<float> sample_rate(arguments, "sample-rate",
-                                       "percentage of rows for each tree (0 to 1.0)", { "sample-rate" }, 0.66);
+                                       "percentage of rows for each tree (0 to 1.0)", { "sample-rate" }, 1.0);
     args::ValueFlag<int> depth(arguments, "tree depth", "decision tree max depth", { "depth" }, 6);
-    args::ValueFlag<int> max_bins(arguments, "humber of bins", "max number of bins in histogram", { "max_bins" }, 10);
+    args::ValueFlag<int> max_bins(arguments, "number of bins", "max number of bins in histogram", { "max_bins" }, 10);
+    args::ValueFlag<int> nthreads(arguments, "number of threads", "number of parallel pthreads to run", { "nthreads" }, 1);
     args::ValueFlag<int> min_leaf_count(arguments, "min leaf size",
-                                        "min number of samples in leaf node", { "min_leaf_count" }, 10);
+                                        "min number of samples in leaf node", { "min_leaf_count" }, 1);
+    args::ValueFlag<int> verbose(arguments, "verbose level", "extended output", { "verbose" }, 0);
     args::HelpFlag h(arguments, "help", "help", { 'h', "help" });
     //args::PositionalList<std::string> pathsList(arguments, "paths", "files to commit");
     std::cout << "Start" << std::endl;
     try {
         parser.ParseCLI(argc, argv);
+        omp_set_num_threads(args::get(nthreads));
+        std::cout << " Max threads: " << omp_get_max_threads() << std::endl;
         if (fit) {
             if (args::get(input_file) == "") {
                 std::cout << "input file missing: " + input_file.Name() << std::endl;
@@ -47,7 +50,7 @@ int main(int argc, char** argv) {
 
             TrainMode::Run(args::get(input_file), args::get(iterations), args::get(learning_rate), args::get(depth),
                            args::get(sample_rate), args::get(max_bins), args::get(min_leaf_count),
-                           args::get(output_file));
+                           args::get(output_file), args::get(verbose)==1);
         } else if (predict) {
             if (args::get(input_file) == "") {
                 std::cout << "input file missing: " + input_file.Name() << std::endl;
@@ -64,7 +67,8 @@ int main(int argc, char** argv) {
                 return 1;
             }
 
-            PredictMode::Run(args::get(input_file), args::get(model_file), args::get(output_file));
+            PredictMode::Run(args::get(input_file), args::get(model_file),
+                             args::get(output_file), args::get(verbose)==1);
         }
     }
     catch (const args::Help&) {

@@ -1,92 +1,92 @@
 #include "histogram.h"
-
+#include <cmath>
 #include <iostream>
 #include <vector>
 #include <limits>
 #include <algorithm>
 
-int FindBin(const THistogram& histogram, float value) {
+//bin bounds search is based on function GreedyFindBin from
+//https://github.com/Microsoft/LightGBM/blob/master/src/io/bin.cpp
+std::vector<float> BuildBinBounds(const TRawFeature& data, size_t max_bins) {
 
-    int low = 0;                    // нижняя граница
-    int up = histogram.size() - 1;    // верхняя граница
+    TRawFeature feature_copy(data);
+    std::sort(feature_copy.begin(), feature_copy.end());
 
-    while (low <= up) {
-        int m = (low + up) / 2;
-        if (histogram[m].upper_bound == value) {
-            low = m + 1;
-            break;
+    std::vector<float> distinct_values = {feature_copy[0]};
+    std::vector<uint32_t> counts = {1};
+    for (uint32_t i = 1; i < feature_copy.size(); ++i) {
+        if (feature_copy[i] == distinct_values.back()) {
+            ++counts.back();
+        } else {
+            distinct_values.push_back(feature_copy[i]);
+            counts.push_back(1);
         }
-        if (histogram[m].upper_bound < value)
-            low = m + 1;
-        if (histogram[m].upper_bound > value)
-            up = m - 1;
+    }
+    size_t row_count = feature_copy.size();
+    size_t num_distinct_values = distinct_values.size();
+
+    std::vector<float> bin_upper_bound;
+    if (num_distinct_values <= max_bins) {
+        for (size_t i = 0; i < num_distinct_values - 1; ++i) {
+            bin_upper_bound.push_back((distinct_values[i] + distinct_values[i + 1]) / 2.0);
+        }
+        bin_upper_bound.push_back(std::numeric_limits<float>::max());
+    } else {
+        double mean_bin_size = static_cast<double>(row_count) / max_bins;
+
+        // mean size for one bin
+        int rest_bin_cnt = max_bins;
+        int rest_sample_cnt = static_cast<int>(row_count);
+        std::vector<bool> is_big_count_value(num_distinct_values, false);
+        for (size_t i = 0; i < num_distinct_values; ++i) {
+            if (counts[i] >= mean_bin_size) {
+                is_big_count_value[i] = true;
+                --rest_bin_cnt;
+                rest_sample_cnt -= counts[i];
+            }
+        }
+        mean_bin_size = static_cast<double>(rest_sample_cnt) / rest_bin_cnt;
+        std::vector<float> upper_bounds(max_bins, std::numeric_limits<float>::infinity());
+        std::vector<float> lower_bounds(max_bins, std::numeric_limits<float>::infinity());
+
+        size_t bin_cnt = 0;
+        lower_bounds[bin_cnt] = distinct_values[0];
+        int cur_cnt_inbin = 0;
+        for (size_t i = 0; i < num_distinct_values - 1; ++i) {
+            if (!is_big_count_value[i]) {
+                rest_sample_cnt -= counts[i];
+            }
+            cur_cnt_inbin += counts[i];
+            // need a new bin
+            if (is_big_count_value[i] || cur_cnt_inbin >= mean_bin_size ||
+                (is_big_count_value[i + 1] && cur_cnt_inbin >= std::max(1.0, mean_bin_size * 0.5f))) {
+                upper_bounds[bin_cnt] = distinct_values[i];
+                ++bin_cnt;
+                lower_bounds[bin_cnt] = distinct_values[i + 1];
+                if (bin_cnt >= max_bins - 1) { break; }
+                cur_cnt_inbin = 0;
+                if (!is_big_count_value[i]) {
+                    --rest_bin_cnt;
+                    mean_bin_size = rest_sample_cnt / static_cast<double>(rest_bin_cnt);
+                }
+            }
+        }
+        ++bin_cnt;
+
+        // update bin upper bound
+        bin_upper_bound.clear();
+        for (int i = 0; i < bin_cnt - 1; ++i) {
+            auto val = (upper_bounds[i] + lower_bounds[i + 1]) / 2.0;
+            if (bin_upper_bound.empty() || val > bin_upper_bound.back()) {
+                bin_upper_bound.push_back(val);
+            }
+        }
+        // last bin upper bound
+        bin_upper_bound.push_back(std::numeric_limits<double>::infinity());
     }
 
-    return low;
-
+    return bin_upper_bound;
 }
 
-std::vector<float> BuildBinBounds(const TRawFeature& data, size_t num_bins) {
-    TRawFeature sorted_data(data);
-    std::sort(sorted_data.begin(), sorted_data.end());
 
-    float avg_bin_size = data.size() / num_bins;
-    std::vector<float> bounds;
-    size_t cur_bin_size = 0;
-    float cur_bound_value = sorted_data[0];
-    std::cout << "Low: " << cur_bound_value;
-    bounds.push_back(cur_bound_value);
-
-    for (const auto value : sorted_data) {
-        if ((cur_bound_value - value) < 1e-6 && (value - cur_bound_value) < 1e-6) {
-            ++cur_bin_size;
-            continue;
-        }
-        cur_bound_value = value;
-        if (cur_bin_size >= avg_bin_size) {
-            bounds.push_back(cur_bound_value);
-            std::cout << "  " << cur_bound_value;
-            cur_bin_size = 0;
-        }
-        ++cur_bin_size;
-    }
-    std::cout << " High: " << cur_bound_value << std::endl;
-    bounds.push_back(std::numeric_limits<float>::max());
-
-    return bounds;
-}
-
-THistogram BuildHistogram(const TFeature& data, const TTarget& target, const TMask& mask,
-                          const std::vector<float>& bounds) {
-
-    THistogram histogram;
-
-    for (size_t i = 1; i < bounds.size(); ++i) {
-        HistogramBin new_bin;
-        new_bin.upper_bound = bounds[i];
-
-        histogram.push_back(new_bin);
-    }
-
-    for (size_t i = 0; i < data.size(); ++i) {
-        if (!mask[i]) {
-            continue;
-        }
-        int bin = FindBin(histogram, data[i]);
-        ++histogram[bin].cnt;
-        histogram[bin].target_sum += target[i];
-    }
-    return histogram;
-}
-
-std::vector<THistogram> CalcHistDifference(std::vector<THistogram> &parent_hists, std::vector<THistogram> &other) {
-    std::vector<THistogram> new_hists(parent_hists);
-
-    for (size_t i = 0; i < parent_hists.size();++i)
-        for (size_t j =0; j < parent_hists[i].size(); ++j) {
-            new_hists[i][j].cnt -= other[i][j].cnt;
-            new_hists[i][j].target_sum -= other[i][j].target_sum;
-        }
-    return new_hists;
-}
 

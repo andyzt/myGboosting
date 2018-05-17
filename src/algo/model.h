@@ -6,19 +6,17 @@
 class TModel {
 public:
     TModel();
-    explicit TModel(TBinarizer&& binarizer);
 
-    void Fit(TPool&& pool, float rate, float iterations, float sample_rate, int depth, int min_leaf_count);
-    TTarget Predict(const TPool& pool) const;
-//    TTarget Predict(const TRawPool& raw) const;
-    void Serialize(const std::string& filename, const TPool& pool);
-    void DeSerialize(const std::string& filename,
-                             std::vector<std::unordered_map<std::string, size_t>>& hashes,
-                             std::vector<std::vector<float>>& splits);
+    void Fit(TRawPool& raw_pool, float rate, float iterations, float sample_rate,
+             size_t depth, size_t min_leaf_count, size_t max_bins);
+    TTarget Predict(TPool& pool) const;
+    TTarget PredictOnTestData(const TRawPool& raw) const;
+    void Serialize(const std::string& filename);
+    void DeSerialize(const std::string& filename);
 
 private:
     float LearningRate;
-    TBinarizer Binarizer;
     std::vector<TDecisionTree> Trees;
+    std::vector<std::vector<float>> upper_bounds;
 };
 
