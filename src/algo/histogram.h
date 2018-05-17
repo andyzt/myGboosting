@@ -5,9 +5,3 @@
 #include <vector>
 
 std::vector<float> BuildBinBounds(const TRawFeature& data, size_t max_bins);
-
-THistogram BuildHistogram(const TFeature& data, const TTarget& target, const std::vector<uint32_t> row_indices,
-                          size_t bins_size);
-
-std::vector<THistogram> CalcHistDifference(std::vector<THistogram> &parent_hists, std::vector<THistogram> &other);
-

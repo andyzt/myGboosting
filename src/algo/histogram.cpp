@@ -5,11 +5,6 @@
 #include <limits>
 #include <algorithm>
 
-std::vector<float>
-GreedyFindBin(const std::vector<float>& distinct_values,
-              const std::vector<uint32_t>& counts,
-              uint64_t total_cnt);
-
 //bin bounds search is based on function GreedyFindBin from
 //https://github.com/Microsoft/LightGBM/blob/master/src/io/bin.cpp
 std::vector<float> BuildBinBounds(const TRawFeature& data, size_t max_bins) {
@@ -93,33 +88,5 @@ std::vector<float> BuildBinBounds(const TRawFeature& data, size_t max_bins) {
     return bin_upper_bound;
 }
 
-THistogram BuildHistogram(const TFeature& data, const TTarget& target, const std::vector<uint32_t> row_indices,
-                          size_t bins_size) {
 
-
-    THistogram histogram(bins_size);
-
-    for (size_t idx :row_indices) {
-        ++histogram[data[idx]].cumulative_cnt;
-        histogram[data[idx]].cumulative_sum += target[idx];
-    }
-
-    //Building cumulative sums
-    for (int i = 0; i + 1 < bins_size; ++i) {
-        histogram[i+1].cumulative_cnt += histogram[i].cumulative_cnt;
-        histogram[i+1].cumulative_sum += histogram[i].cumulative_sum;
-    }
-    return histogram;
-}
-
-std::vector<THistogram> CalcHistDifference(std::vector<THistogram> &parent_hists, std::vector<THistogram> &other) {
-    std::vector<THistogram> new_hists(parent_hists);
-
-    for (size_t i = 0; i < parent_hists.size();++i)
-        for (size_t j =0; j < parent_hists[i].size(); ++j) {
-            new_hists[i][j].cumulative_cnt -= other[i][j].cumulative_cnt;
-            new_hists[i][j].cumulative_sum -= other[i][j].cumulative_sum;
-        }
-    return new_hists;
-}
 

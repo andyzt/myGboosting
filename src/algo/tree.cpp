@@ -5,42 +5,105 @@
 #include <set>
 #include "histogram.h"
 
-TSplit CalcSplitHistogram(TNodes &Nodes, const std::vector<size_t>& cur_level_nodes,
-                          size_t featureId, size_t binCount) {
+void TDecisionTreeNode::BuildHistogram(const size_t feature_id, const TFeature& data,
+                                       const TTarget& target, size_t bins_size) {
+
+    hists[feature_id].resize(bins_size);
+
+    for (size_t idx :row_indices) {
+        ++hists[feature_id][data[idx]].cumulative_cnt;
+        hists[feature_id][data[idx]].cumulative_sum += target[idx];
+    }
+
+    //Building cumulative sums
+    for (int i = 0; i + 1 < bins_size; ++i) {
+        hists[feature_id][i+1].cumulative_cnt += hists[feature_id][i].cumulative_cnt;
+        hists[feature_id][i+1].cumulative_sum += hists[feature_id][i].cumulative_sum;
+    }
+}
+
+void TDecisionTreeNode::CalcHistDifference(const size_t feature_id,
+                                           const THistogram& parent_hists,
+                                           const THistogram& other) {
+
+    hists[feature_id] = parent_hists;
+    for (size_t bin_id = 0; bin_id < parent_hists.size();++bin_id) {
+        hists[feature_id][bin_id].cumulative_cnt -= other[bin_id].cumulative_cnt;
+        hists[feature_id][bin_id].cumulative_sum -= other[bin_id].cumulative_sum;
+    }
+}
+
+TSplit CalcSplitHistogram(const TFeature& feature_vector,
+                          const TTarget& target,
+                          TNodes &Nodes,
+                          const std::vector<size_t>& cur_level_nodes,
+                          size_t feature_id,
+                          size_t binCount) {
 
     TSplit split;
     double max_gain = std::numeric_limits<float>::min();
 
+    if (cur_level_nodes.size() == 1) {
+        Nodes[cur_level_nodes[0]].BuildHistogram(feature_id,
+                                                 feature_vector,
+                                                 target,
+                                                 binCount);
+    } else {
+        //Let's build new histograms
+        for (int left_node_idx = 0; left_node_idx < cur_level_nodes.size(); left_node_idx += 2) {
+            auto &left_node = Nodes[cur_level_nodes[left_node_idx]];
+            auto &right_node = Nodes[cur_level_nodes[left_node_idx + 1]];
+            if (!left_node.is_empty && !right_node.is_empty) {
+                if (left_node.row_indices.size() > right_node.row_indices.size()) {
+                    right_node.BuildHistogram(feature_id,
+                                              feature_vector,
+                                              target,
+                                              binCount);
+                    left_node.CalcHistDifference(feature_id,
+                                                 Nodes[left_node.Parent].hists[feature_id],
+                                                 right_node.hists[feature_id]);
+                } else {
+                    left_node.BuildHistogram(feature_id,
+                                             feature_vector,
+                                             target,
+                                             binCount);
+                    right_node.CalcHistDifference(feature_id,
+                                                  Nodes[left_node.Parent].hists[feature_id],
+                                                  left_node.hists[feature_id]);
+                }
+            } else {
+                //copy histograms from parent
+                if (!left_node.is_empty) {
+                    left_node.hists[feature_id] = Nodes[left_node.Parent].hists[feature_id];
+                }
+                if (!right_node.is_empty) {
+                    right_node.hists[feature_id] = Nodes[left_node.Parent].hists[feature_id];
+                }
+            }
+        }
+    }
 
     for (size_t cur_bin =0; cur_bin <binCount; ++cur_bin) {
-        float gain = 0;
+        double gain = 0;
         for (auto cur_node : cur_level_nodes) {
             if (Nodes[cur_node].is_empty)
                 continue;
-
             const auto& hists = Nodes[cur_node].hists;
 
             double left_gain = 0.0;
-            //std::cout << hists[featureId][cur_bin].cumulative_cnt << ' ';
-            if (hists[featureId][cur_bin].cumulative_cnt != 0) {
-                float val = hists[featureId][cur_bin].cumulative_sum;
-                //std::cout << hists[featureId][cur_bin].cumulative_cnt << ' ';
-                left_gain = val * val / hists[featureId][cur_bin].cumulative_cnt;
+            if (hists[feature_id][cur_bin].cumulative_cnt != 0) {
+                double val = hists[feature_id][cur_bin].cumulative_sum;
+                left_gain = val * val / hists[feature_id][cur_bin].cumulative_cnt;
             }
 
-            float right_sum = hists[featureId].back().cumulative_sum - hists[featureId][cur_bin].cumulative_sum;
-            float right_cnt = hists[featureId].back().cumulative_cnt - hists[featureId][cur_bin].cumulative_cnt;
+            double right_sum = hists[feature_id].back().cumulative_sum - hists[feature_id][cur_bin].cumulative_sum;
+            float right_cnt = hists[feature_id].back().cumulative_cnt - hists[feature_id][cur_bin].cumulative_cnt;
 
             double right_gain = 0.0;
             if (right_cnt != 0) {
                 right_gain = right_sum * right_sum / right_cnt;
             }
-
-            gain += (left_gain  + right_gain); // / (hists[featureId][cur_bin].cumulative_cnt + right_cnt);
-
-            Nodes[cur_node].l_count[featureId] = hists[featureId][cur_bin].cumulative_cnt;
-            Nodes[cur_node].r_count[featureId] = right_cnt;
-
+            gain += left_gain  + right_gain;
         }
 
         if (gain > max_gain) {
@@ -51,33 +114,25 @@ TSplit CalcSplitHistogram(TNodes &Nodes, const std::vector<size_t>& cur_level_no
     }
     split.gain = max_gain;
 
-
     return split;
 }
 
-TDecisionTree TDecisionTree::FitHist(const TPool& pool, size_t maxDepth, size_t minCount, float sample_rate,
+TDecisionTree TDecisionTree::FitHist(TPool& pool, size_t maxDepth, size_t minCount, float sample_rate, float lrate,
                                  std::vector<std::vector<float>>& all_bounds, bool verbose) {
     TDecisionTree tree;
     size_t pool_size = pool.Size;
-
-
     std::set<int> chosen_features;
 
     TDecisionTreeNode node;
-    node.l_count.resize(pool.Features.size());
-    node.r_count.resize(pool.Features.size());
+    node.row_indices.reserve(static_cast<int>(pool_size * sample_rate));
+    node.hists.resize(pool.Features.size());
 
     std::random_device rd{}; // use to seed the rng
     std::mt19937 rng{rd()}; // rng
     std::bernoulli_distribution d(sample_rate);
     for (uint32_t i = 0; i < pool_size; ++i) {
         if (d(rng))
-            node.row_indices.push_back(i);
-    }
-
-    for (size_t feature_id =0; feature_id <pool.Features.size(); ++feature_id) {
-        node.hists.push_back(BuildHistogram(pool.Features[feature_id], pool.Target, node.row_indices,
-                                            all_bounds[feature_id].size()));
+            node.row_indices.emplace_back(i);
     }
 
     tree.Nodes.emplace_back(node);
@@ -92,7 +147,12 @@ TDecisionTree TDecisionTree::FitHist(const TPool& pool, size_t maxDepth, size_t 
         for (size_t feature_id = 0; feature_id < pool.Features.size(); ++feature_id) {
             if (chosen_features.find(feature_id) != chosen_features.end())
                 continue;
-            TSplit cur_split = CalcSplitHistogram(tree.Nodes, cur_level_nodes, feature_id, all_bounds[feature_id].size());
+            TSplit cur_split = CalcSplitHistogram(pool.Features[feature_id],
+                                                  pool.Target,
+                                                  tree.Nodes,
+                                                  cur_level_nodes,
+                                                  feature_id,
+                                                  all_bounds[feature_id].size());
             //std::cout << std::endl;
             //std::cout << feature_id << " :: " << cur_split.gain << std::endl;
             if (cur_split.gain > max_gain) {
@@ -114,16 +174,11 @@ TDecisionTree TDecisionTree::FitHist(const TPool& pool, size_t maxDepth, size_t 
 
             //Let's build left child node with new histograms
             TDecisionTreeNode left_node;
-            left_node.l_count.resize(pool.Features.size());
-            left_node.r_count.resize(pool.Features.size());
             left_node.Parent = nodeId;
-
-            //Let's build left child node with new histograms
             TDecisionTreeNode right_node;
-            right_node.l_count.resize(pool.Features.size());
-            right_node.r_count.resize(pool.Features.size());
             right_node.Parent = nodeId;
 
+            //for terminal node we copy its Value from parent
             if (tree.Nodes[nodeId].is_empty) {
                 left_node.Value = tree.Nodes[nodeId].Value;
                 left_node.is_empty = true;
@@ -141,7 +196,8 @@ TDecisionTree TDecisionTree::FitHist(const TPool& pool, size_t maxDepth, size_t 
                 continue;
             }
 
-            //we are splitting by upper bound of a bin, so for split bin_id =0 we should put 0 bin to the left
+            //we are splitting by upper bound of a bin,
+            // so for split bin_id =0 we should put 0 bin to the left
             //that's why we have > here (not >=)
             for(const auto& cur_idx : tree.Nodes[nodeId].row_indices) {
                 if (pool.Features[best_feature][cur_idx] > bin_id) {
@@ -156,44 +212,19 @@ TDecisionTree TDecisionTree::FitHist(const TPool& pool, size_t maxDepth, size_t 
 
             if (left_node.is_empty || right_node.is_empty) {
 
-                tree.Nodes[nodeId].Value = tree.Nodes[nodeId].hists[0].back().cumulative_sum
+                double cumulative_sum = 0.0;
+                for (const auto idx : tree.Nodes[nodeId].row_indices)
+                    cumulative_sum += pool.Target[idx];
+                tree.Nodes[nodeId].Value = cumulative_sum
                                            / tree.Nodes[nodeId].row_indices.size();
                 left_node.Value = tree.Nodes[nodeId].Value;
                 right_node.Value = tree.Nodes[nodeId].Value;
             }
 
-            //Let's build new histograms
-            if (!left_node.is_empty && !right_node.is_empty) {
-                if (tree.Nodes[nodeId].l_count[best_feature] > tree.Nodes[nodeId].r_count[best_feature]) {
-                    for (size_t feature_id = 0; feature_id < pool.Features.size(); ++feature_id) {
-                        right_node.hists.push_back(BuildHistogram(pool.Features[feature_id], pool.Target,
-                                                                  right_node.row_indices,
-                                                                  all_bounds[feature_id].size()));
-                    }
-
-                    left_node.hists = CalcHistDifference(tree.Nodes[nodeId].hists, right_node.hists);
-
-                } else {
-
-                    for (size_t feature_id = 0; feature_id < pool.Features.size(); ++feature_id) {
-                        left_node.hists.push_back(BuildHistogram(pool.Features[feature_id], pool.Target,
-                                                                 left_node.row_indices,
-                                                                 all_bounds[feature_id].size()));
-                    }
-
-
-                    right_node.hists = CalcHistDifference(tree.Nodes[nodeId].hists, left_node.hists);
-                }
-            } else {
-                //copy histograms from parent
-                if (!left_node.is_empty) {
-                        left_node.hists = tree.Nodes[nodeId].hists;
-                }
-
-                if (!right_node.is_empty) {
-                    right_node.hists = tree.Nodes[nodeId].hists;
-                }
-            }
+            if (!left_node.is_empty)
+                left_node.hists.resize(pool.Features.size());
+            if (!right_node.is_empty)
+                right_node.hists.resize(pool.Features.size());
 
             tree.Nodes.emplace_back(left_node);
             tree.Nodes[nodeId].Left = tree.Nodes.size() - 1;
@@ -207,21 +238,20 @@ TDecisionTree TDecisionTree::FitHist(const TPool& pool, size_t maxDepth, size_t 
         std::swap(cur_level_nodes, next_level_nodes);
     }
 
-    //first value is dummy
-    tree.values.reserve(cur_level_nodes.size()+1);
-    tree.values.push_back(0);
+    tree.values.reserve(cur_level_nodes.size());
     for (const auto& nodeId : cur_level_nodes) {
-
         if (tree.Nodes[nodeId].is_empty) {
             tree.values.push_back(tree.Nodes[nodeId].Value);
-    //        std::cout << tree.values.back() << ' ';
-            continue;
+        } else {
+            double cumulative_sum = 0.0;
+            for (const auto idx : tree.Nodes[nodeId].row_indices)
+                cumulative_sum += pool.Target[idx];
+            tree.values.push_back(cumulative_sum / tree.Nodes[nodeId].row_indices.size());
         }
-
-        tree.values.push_back(tree.Nodes[nodeId].hists[0].back().cumulative_sum / tree.Nodes[nodeId].row_indices.size());
-    //    std::cout << tree.values.back() << ' ';
+        //replacing our target by gradient of current step
+        for (const auto idx : tree.Nodes[nodeId].row_indices)
+            pool.Target[idx] -= lrate * tree.values.back();
     }
-    //std::cout << std::endl;
 
     return tree;
 }
@@ -236,6 +266,8 @@ std::vector<int> TDecisionTree::GetPredictionIndices(TPool& pool) const {
                 predictions_idx[i] = (predictions_idx[i] << 1) - 1;
             }
         }
+        //indexing starts from 0
+        --predictions_idx[i];
     }
 
     return predictions_idx;

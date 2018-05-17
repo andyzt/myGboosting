@@ -16,16 +16,17 @@ public:
 
     bool is_empty = false;
     float Value = 0.0;
-    TSplit split;
+
     std::vector<THistogram> hists;
     std::vector<uint32_t> row_indices;
-    std::vector<size_t> l_count;
-    std::vector<size_t> r_count;
 
 public:
-    bool IsLeaf() const;
-    size_t GetChild(const TFeatureRow& data) const;
-    static TDecisionTreeNode Terminate(const TPool& pool, TMask& mask);
+    void BuildHistogram(const size_t feature_id, const TFeature& data,
+                        const TTarget& target, size_t bins_size);
+    void CalcHistDifference(const size_t feature_id,
+                            const THistogram& parent_hists,
+                            const THistogram& other);
+
 };
 
 using TNodes = std::vector<TDecisionTreeNode>;
@@ -33,7 +34,7 @@ using TNodes = std::vector<TDecisionTreeNode>;
 class TDecisionTree {
 public:
 
-    static TDecisionTree FitHist(const TPool& pool, size_t maxDepth, size_t minCount, float sample_rate,
+    static TDecisionTree FitHist(TPool& pool, size_t maxDepth, size_t minCount, float sample_rate, float lrate,
                              std::vector<std::vector<float>>& all_bounds, bool verbose);
     //float Predict(const TFeatureRow& data) const;
     void AddPredict(TPool& pool, float lrate, TTarget& predictions) const;
@@ -41,13 +42,6 @@ public:
 
 private:
     std::vector<int> GetPredictionIndices(TPool& pool) const;
-    static size_t FitImpl(TDecisionTree& tree,
-                          size_t depth,
-                          const TPool& pool,
-                          TMask& mask,
-                          size_t maxDepth,
-                          size_t minCount,
-                          bool verbose);
 
 public:
     TNodes Nodes;
@@ -55,7 +49,9 @@ public:
     std::vector<float> values;
 };
 
-void TestDecisionTree();
-
-TSplit CalcSplitHistogram(TNodes &Nodes, const std::vector<size_t>& cur_level_nodes,
-                          size_t featureId, size_t binCount);
+TSplit CalcSplitHistogram(const TFeature& feature_vector,
+                          const TTarget& target,
+                          TNodes &Nodes,
+                          const std::vector<size_t>& cur_level_nodes,
+                          size_t feature_id,
+                          size_t binCount);

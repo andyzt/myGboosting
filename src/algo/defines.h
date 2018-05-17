@@ -18,9 +18,6 @@ using TFeatures = std::vector<TFeature>;
 // target column
 using TTarget = std::vector<float>;
 
-// used for tree fitting
-using TMask = std::vector<int16_t>;
-
 // feature names
 using TNames = std::vector<std::string>;
 
@@ -35,7 +32,7 @@ using TFeatureRows = std::vector<TFeatureRow>;
 
 struct HistogramBin {
     size_t cumulative_cnt = 0;
-    float cumulative_sum = 0;
+    double cumulative_sum = 0;
 };
 
 // histogram
