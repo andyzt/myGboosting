@@ -34,12 +34,8 @@ using TFeatureRow = std::vector<char>;
 using TFeatureRows = std::vector<TFeatureRow>;
 
 struct HistogramBin {
-    size_t cnt = 0;
     size_t cumulative_cnt = 0;
-    float target_sum = 0;
     float cumulative_sum = 0;
-
-    float upper_bound;
 };
 
 // histogram

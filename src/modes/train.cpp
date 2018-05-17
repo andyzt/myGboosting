@@ -22,7 +22,9 @@ void TrainMode::Run(const std::string& path, const int iterations, const float l
 
     //TBinarizer binarizer;
 
+    std::cout << " Loading started" << std::endl;
     TRawPool pool = LoadTrainingPool(path);
+    std::cout << " Loading ended" << std::endl;
 
     std::cout << "Done" << std::endl;
     std::cout << "Raw features: " << pool.RawFeatures.size() << std::endl;
@@ -31,7 +33,7 @@ void TrainMode::Run(const std::string& path, const int iterations, const float l
 
 
     TModel model;
-    model.Fit(std::move(pool), lrate, iterations, sample_rate, depth, min_leaf_count, max_bins);
+    model.Fit(pool, lrate, iterations, sample_rate, depth, min_leaf_count, max_bins);
 
     std::cout << "Writing to file: " << output_file << std::endl;
     //model.Serialize(output_file, pool);

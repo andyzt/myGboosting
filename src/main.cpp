@@ -24,7 +24,7 @@ int main(int argc, char** argv) {
     args::ValueFlag<int> iterations(arguments, "iterations amount", "number of trees in ensemble", { "iterations" }, 100);
     args::ValueFlag<float> learning_rate(arguments, "learning-rate", "trees regularization", { "learning-rate" }, 1.0);
     args::ValueFlag<float> sample_rate(arguments, "sample-rate",
-                                       "percentage of rows for each tree (0 to 1.0)", { "sample-rate" }, 0.66);
+                                       "percentage of rows for each tree (0 to 1.0)", { "sample-rate" }, 1.0);
     args::ValueFlag<int> depth(arguments, "tree depth", "decision tree max depth", { "depth" }, 6);
     args::ValueFlag<int> max_bins(arguments, "humber of bins", "max number of bins in histogram", { "max_bins" }, 10);
     args::ValueFlag<int> min_leaf_count(arguments, "min leaf size",
