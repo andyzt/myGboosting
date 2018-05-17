@@ -4,7 +4,7 @@
 #include <set>
 #include "histogram.h"
 #include <random>
-//#include <omp.h>
+#include <omp.h>
 
 void TDecisionTreeNode::BuildHistogram(const size_t feature_id, const TFeature& data,
                                        const TTarget& target, size_t bins_size) {
@@ -139,7 +139,6 @@ TDecisionTree TDecisionTree::FitHist(TPool& pool,
     } else {
         std::random_device rd{}; // use to seed the rng
         std::mt19937 rng{rd()}; // rng
-        //std::bernoulli_distribution d(sample_rate);
         std::uniform_real_distribution<double> d(0.0,1.0);
 
         for (size_t i = 0; i < pool.Size; ++i) {
@@ -267,7 +266,7 @@ TDecisionTree TDecisionTree::FitHist(TPool& pool,
 }
 
 void TDecisionTree::AddPredict(TPool& pool, float lrate, TTarget& predictions) const {
-    for (size_t i = 0; i < pool.Target.size(); ++i) {
+    for (size_t i = 0; i < pool.Size; ++i) {
         uint32_t predictions_idx = 1;
         for (const auto& it : splits) {
             if (pool.Features[it.first][i] > it.second) {

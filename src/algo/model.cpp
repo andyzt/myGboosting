@@ -81,7 +81,7 @@ TTarget TModel::PredictOnTestData(const TRawPool& raw_pool) const {
 void TModel::Serialize(const std::string& filename) {
     // Verify that the version of the library that we linked against is
     // compatible with the version of the headers we compiled against.
-    GOOGLE_PROTOBUF_VERIFY_VERSION;
+   GOOGLE_PROTOBUF_VERIFY_VERSION;
 
     proto_model::Model my_model;
     my_model.set_lr(LearningRate);
@@ -140,6 +140,7 @@ void TModel::DeSerialize(const std::string& filename) {
     }
 
     LearningRate = my_model.lr();
+
     for (int i=0; i <  my_model.tree_size(); ++i) {
         TDecisionTree new_tree;
         for (int j=0; j <  my_model.tree(i).splits_size(); ++j) {

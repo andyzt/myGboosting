@@ -1,7 +1,7 @@
 #include "lib/args.hxx"
 #include "modes/predict.h"
 #include "modes/train.h"
-//#include <omp.h>
+#include <omp.h>
 
 #include <iostream>
 #include <fstream>
@@ -35,8 +35,8 @@ int main(int argc, char** argv) {
 
     try {
         parser.ParseCLI(argc, argv);
-        //omp_set_num_threads(args::get(nthreads));
-        //std::cout << " Max threads: " << omp_get_max_threads() << std::endl;
+        omp_set_num_threads(args::get(nthreads));
+        std::cout << " Max threads: " << omp_get_max_threads() << std::endl;
         if (fit) {
             if (args::get(input_file) == "") {
                 std::cout << "input file missing: " + input_file.Name() << std::endl;
