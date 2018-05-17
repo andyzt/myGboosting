@@ -25,11 +25,12 @@ set(SOURCE_FILES ${SOURCE_FILES} ${CURRENT_SOURCE_FILES})
 
 set(CMAKE_CXX_STANDARD 14)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14  -Wall -Wextra -Wpedantic")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14 -fopenmp -Wall -Wextra -Wpedantic")
 # set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address")
 
 set(CMAKE_CXX_FLAGS_DEBUG "-g")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3")
+
 
 set(CMAKE_EXE_LINKER_FLAGS "-L/usr/local/lib -lprotobuf")
 
