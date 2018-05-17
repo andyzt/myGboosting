@@ -4,31 +4,7 @@
 #include <set>
 #include "histogram.h"
 #include <random>
-
-/*
-void TDecisionTreeNode::BuildAllHistograms(const TFeatures& features,
-                                       const TTarget& target) {
-
-
-    for (size_t idx :row_indices) {
-        float cur_target = target[idx];
-        for (int feature_id = 0; feature_id < features.size(); ++feature_id) {
-            uint8_t bin_num = features[feature_id][idx];
-            ++hists[feature_id][bin_num].cumulative_cnt;
-            hists[feature_id][bin_num].cumulative_sum += cur_target;
-        }
-    }
-
-    //Building cumulative sums
-    for (int feature_id = 0; feature_id < features.size(); ++feature_id) {
-        for (int i = 0; i + 1 < hists[feature_id].size(); ++i) {
-            hists[feature_id][i + 1].cumulative_cnt += hists[feature_id][i].cumulative_cnt;
-            hists[feature_id][i + 1].cumulative_sum += hists[feature_id][i].cumulative_sum;
-        }
-    }
-
-}
-*/
+//#include <omp.h>
 
 void TDecisionTreeNode::BuildHistogram(const size_t feature_id, const TFeature& data,
                                        const TTarget& target, size_t bins_size) {
@@ -146,7 +122,6 @@ TSplit CalcSplitHistogram(const TFeature& feature_vector,
     return split;
 }
 
-
 TDecisionTree TDecisionTree::FitHist(TPool& pool,
                                      size_t maxDepth,
                                      size_t minCount,
@@ -182,12 +157,6 @@ TDecisionTree TDecisionTree::FitHist(TPool& pool,
     TDecisionTreeNode node;
     node.row_indices = row_indices;
     node.hists.resize(pool.Features.size());
-    /*
-    for (int feature_id = 0; feature_id < pool.Features.size(); ++feature_id) {
-        node.hists[feature_id].resize(all_bounds[feature_id].size());
-    }
-    node.BuildAllHistograms(pool.Features, pool.Target);
-*/
 
     cur_level_nodes.emplace_back(node);
 
@@ -199,6 +168,7 @@ TDecisionTree TDecisionTree::FitHist(TPool& pool,
 
         //rename to parents after std::swap with cur_level on prev iteration
         const auto& parent_level_nodes = next_level_nodes;
+        #pragma omp parallel for
         for (size_t feature_id = 0; feature_id < pool.Features.size(); ++feature_id) {
             if (chosen_features.find(feature_id) != chosen_features.end())
                 continue;
@@ -208,8 +178,6 @@ TDecisionTree TDecisionTree::FitHist(TPool& pool,
                                                   parent_level_nodes,
                                                   feature_id,
                                                   all_bounds[feature_id].size());
-            //std::cout << std::endl;
-            //std::cout << feature_id << " :: " << cur_split.gain << std::endl;
             if (cur_split.gain > max_gain) {
                 max_gain = cur_split.gain;
                 best_feature = feature_id;
@@ -220,8 +188,6 @@ TDecisionTree TDecisionTree::FitHist(TPool& pool,
         chosen_features.insert(best_feature);
 
         tree.splits.emplace_back(best_feature, bin_id);
-        //std::cout << best_feature << " : " << bin_id << std::endl;
-
 
         next_level_nodes.clear();
         next_level_nodes.reserve(2 * cur_level_nodes.size());

@@ -2,29 +2,26 @@ syntax = "proto2";
 
 package proto_model;
 
-message TreeNode {
-    required int32 FeatureId = 1;
-    required int32 Left = 2;
-    required int32 Right = 3;
-    required bool Leaf = 4;
-    required float Value = 5;
-}
-
-message Tree {
-    repeated TreeNode node = 1;
-}
-
-message Hash {
-    map<string, int32> hash = 1;
+message LeafValue {
+    required float Value = 1;
 }
 
 message Split {
-    repeated float split_val = 1;
+    required int32 feature_id = 1;
+    required int32 bin_id = 2;
+}
+
+message Tree {
+    repeated LeafValue leaf = 1;
+    repeated Split splits = 2;
+}
+
+message Bound {
+    repeated float bound_val = 1;
 }
 
 message Model {
   repeated Tree tree = 1;
-  repeated Hash hashes = 2;
-  repeated Split splits = 3;
-  required float lr = 4;
+  repeated Bound feature_bounds = 2;
+  required float lr = 3;
 }

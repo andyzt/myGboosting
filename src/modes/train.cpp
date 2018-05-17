@@ -28,7 +28,7 @@ void TrainMode::Run(const std::string& path, const int iterations, const float l
 
     std::cout << "Done" << std::endl;
     std::cout << "Raw features: " << pool.RawFeatures.size() << std::endl;
-    //std::cout << "Binarized features: " << pool.BinarizedFeatureCount << std::endl;
+
     std::cout << "Size: " << pool.RawFeatures[0].size() << std::endl;
 
 
@@ -36,6 +36,6 @@ void TrainMode::Run(const std::string& path, const int iterations, const float l
     model.Fit(pool, lrate, iterations, sample_rate, depth, min_leaf_count, max_bins);
 
     std::cout << "Writing to file: " << output_file << std::endl;
-    //model.Serialize(output_file, pool);
+    model.Serialize(output_file);
 
 }

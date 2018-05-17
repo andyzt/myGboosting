@@ -1,5 +1,5 @@
 #include "model.h"
-#include "src/proto/model.pb.h"
+#include "proto/model.pb.h"
 #include <fstream>
 #include "histogram.h"
 
@@ -30,13 +30,11 @@ void TModel::Fit(TRawPool& raw_pool, float rate, float iterations, float sample_
     LearningRate = rate;
     TTarget original_target(raw_pool.Target);
 
-    std::vector<std::vector<float>> all_bounds;
-
     for (size_t l = 0; l < raw_pool.RawFeatures.size(); ++l) {
-        all_bounds.emplace_back(BuildBinBounds(raw_pool.RawFeatures[l], max_bins));
+        upper_bounds.emplace_back(BuildBinBounds(raw_pool.RawFeatures[l], max_bins));
     }
 
-    TPool pool = ConvertPoolToBinNumbers(raw_pool, all_bounds);
+    TPool pool = ConvertPoolToBinNumbers(raw_pool, upper_bounds);
 
     raw_pool.RawFeatures.clear();
     raw_pool.Target.clear();
@@ -46,7 +44,7 @@ void TModel::Fit(TRawPool& raw_pool, float rate, float iterations, float sample_
 
     for (int iter = 0; iter < iterations; ++iter) {
         Trees.emplace_back(TDecisionTree::FitHist(pool, depth, min_leaf_count, sample_rate,
-                                               all_bounds, false));
+                                               upper_bounds, false));
         Trees.back().ModifyTargetByPredict(pool, LearningRate);
         std::cout << "Iteration # " << iter << " finished " << std::endl;
         //std::cout << "MSE = " << MSE(target, Predict(pool)) << std::endl;
@@ -68,12 +66,19 @@ TTarget TModel::Predict(TPool& pool) const {
     return predictions;
 }
 
-//TTarget TModel::Predict(const TRawPool& raw) const {
-//    return TTarget();
-//}
+TTarget TModel::PredictOnTestData(const TRawPool& raw_pool) const {
+    TPool pool = ConvertPoolToBinNumbers(raw_pool, upper_bounds);
+    TTarget predictions(pool.Size, 0.0);
 
-/*
-void TModel::Serialize(const std::string& filename, const TPool& pool) {
+    for (const auto& tree : Trees) {
+        tree.AddPredict(pool, LearningRate, predictions);
+    }
+
+    return predictions;
+}
+
+
+void TModel::Serialize(const std::string& filename) {
     // Verify that the version of the library that we linked against is
     // compatible with the version of the headers we compiled against.
     GOOGLE_PROTOBUF_VERIFY_VERSION;
@@ -84,29 +89,23 @@ void TModel::Serialize(const std::string& filename, const TPool& pool) {
     //saving all decision trees
     for (const auto& tree : Trees) {
         auto serialized_tree = my_model.add_tree();
-        for (const auto& node : tree.Nodes) {
-            auto serialized_node = serialized_tree->add_node();
-            serialized_node->set_featureid(node.FeatureId);
-            serialized_node->set_left(node.Left);
-            serialized_node->set_right(node.Right);
-            serialized_node->set_leaf(node.Leaf);
-            serialized_node->set_value(node.Value);
+        for (const auto& split : tree.splits) {
+            auto serialized_split = serialized_tree->add_splits();
+            serialized_split->set_feature_id(split.first);
+            serialized_split->set_bin_id(split.second);
         }
+        for (const float value : tree.values) {
+            auto serialized_leaf = serialized_tree->add_leaf();
+            serialized_leaf->set_value(value);
+        }
+
     }
 
-    //saving all splits
-    for (const auto& split : Binarizer.GetSplits()) {
-        auto serialized_split = my_model.add_splits();
-        for (const auto& split_val : split)
-            serialized_split->add_split_val(split_val);
-    }
-
-    //saving all hashes
-    for (const auto& hash : pool.Hashes) {
-        auto serialized_hash = my_model.add_hashes();
-        for (auto it : hash)
-            (*serialized_hash->mutable_hash())[it.first] = it.second;
-
+    //saving all upper bounds
+    for (const auto& bound : upper_bounds) {
+        auto serialized_bound = my_model.add_feature_bounds();
+        for (const auto& bound_val : bound)
+            serialized_bound->add_bound_val(bound_val);
     }
 
     // Write the model to disk.
@@ -121,9 +120,7 @@ void TModel::Serialize(const std::string& filename, const TPool& pool) {
 
 }
 
-void TModel::DeSerialize(const std::string& filename,
-                         std::vector<std::unordered_map<std::string, size_t>>& hashes,
-                         std::vector<std::vector<float>>& splits) {
+void TModel::DeSerialize(const std::string& filename) {
     // Verify that the version of the library that we linked against is
     // compatible with the version of the headers we compiled against.
     GOOGLE_PROTOBUF_VERIFY_VERSION;
@@ -145,39 +142,30 @@ void TModel::DeSerialize(const std::string& filename,
     LearningRate = my_model.lr();
     for (int i=0; i <  my_model.tree_size(); ++i) {
         TDecisionTree new_tree;
-        for (int j=0; j <  my_model.tree(i).node_size(); ++j) {
-            TDecisionTreeNode new_node;
-            new_node.FeatureId = my_model.tree(i).node(j).featureid();
-            new_node.Left = my_model.tree(i).node(j).left();
-            new_node.Right = my_model.tree(i).node(j).right();
-            new_node.Leaf = my_model.tree(i).node(j).leaf();
-            new_node.Value = my_model.tree(i).node(j).value();
+        for (int j=0; j <  my_model.tree(i).splits_size(); ++j) {
+            std::pair<int, u_int8_t> new_split;
+            new_split.first = my_model.tree(i).splits(j).feature_id();
+            new_split.second = my_model.tree(i).splits(j).bin_id();
 
-            new_tree.Nodes.emplace_back(new_node);
+            new_tree.splits.emplace_back(new_split);
+        }
+
+        for (int j=0; j <  my_model.tree(i).leaf_size(); ++j) {
+            new_tree.values.emplace_back(my_model.tree(i).leaf(j).value());
         }
         Trees.emplace_back(new_tree);
     }
 
-    //loading all splits
+    //loading all bounds
 
-    for (int i=0; i <  my_model.splits_size(); ++i) {
-        std::vector<float> new_split;
-        for (int j=0; j <  my_model.splits(i).split_val_size(); ++j)
-            new_split.push_back(my_model.splits(i).split_val(j));
-        splits.emplace_back(new_split);
+    for (int i=0; i <  my_model.feature_bounds_size(); ++i) {
+        std::vector<float> new_bound;
+        for (int j=0; j <  my_model.feature_bounds(i).bound_val_size(); ++j)
+            new_bound.push_back(my_model.feature_bounds(i).bound_val(j));
+        upper_bounds.emplace_back(new_bound);
     }
-
-    //loading all hashes
-    for (int i=0; i <  my_model.hashes_size(); ++i) {
-        std::unordered_map<std::string, size_t> new_hash;
-        for (auto it : my_model.hashes(i).hash())
-            new_hash[it.first] = it.second;
-        hashes.emplace_back(new_hash);
-    }
-
 
         // Optional:  Delete all global objects allocated by libprotobuf.
     google::protobuf::ShutdownProtobufLibrary();
 
 }
- */

@@ -19,5 +19,5 @@ public:
 
 TRawPool LoadTrainingPool(const std::string& path);
 TRawPool LoadTestingPool(const std::string& path);
-TPool ConvertPoolToBinNumbers(const TRawPool& raw, std::vector<std::vector<float>>& bounds);
+TPool ConvertPoolToBinNumbers(const TRawPool& raw, const std::vector<std::vector<float>>& bounds);
 

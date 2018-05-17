@@ -16,34 +16,26 @@ void PredictMode::Run(const std::string& path, const std::string& model_file, co
 
     std::cout << "Loading Dataset" << path << std::endl;
 
-    TRawPool pool;
-    //TBinarizer binarizer;
+    TRawPool raw_pool = LoadTestingPool(model_file);
+
     TModel model;
 
-    std::vector<std::vector<float>> splits;
-    std::vector<std::unordered_map<std::string, size_t>> hashes;
-    //model.DeSerialize(model_file, hashes, splits);
+    model.DeSerialize(model_file);
 
-    //pool = binarizer.BinarizeTestData(LoadTestingPool(path, hashes), splits);
 
     std::cout << "Done" << std::endl;
-    std::cout << "Raw features: " << pool.RawFeatures.size() << std::endl;
-    //std::cout << "Binarized features: " << pool.BinarizedFeatureCount << std::endl;
-    std::cout << "Size: " << pool.Target.size() << std::endl;
+    std::cout << "Raw features: " << raw_pool.RawFeatures.size() << std::endl;
+    std::cout << "Size: " << raw_pool.Target.size() << std::endl;
 
-    //TModel model(std::move(binarizer));
 
-/*
-    auto predictions = model.Predict(pool);
+    auto predictions = model.PredictOnTestData(raw_pool);
 
     std::cout << "Writing to file: " << output_file << std::endl;
 
     std::ofstream out(output_file);
     for (const auto& val : predictions) {
-        //std::cout << val << std::endl;
         out << val << std::endl;
     }
 
     out.close();
-*/
  }

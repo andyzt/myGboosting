@@ -97,7 +97,7 @@ TRawPool LoadTestingPool(const std::string& path) {
     return pool;
 }
 
-TPool ConvertPoolToBinNumbers(const TRawPool& raw, std::vector<std::vector<float>>& bounds) {
+TPool ConvertPoolToBinNumbers(const TRawPool& raw, const std::vector<std::vector<float>>& bounds) {
     TPool pool;
     pool.Target = std::move(raw.Target);
     pool.Size = raw.RawFeatures[0].size();
