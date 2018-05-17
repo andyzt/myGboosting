@@ -1182,9 +1182,6 @@ namespace io {
                         throw error::header_missing();
                 } while (comment_policy::is_comment(line));
 
-                detail::parse_header_line
-                    <column_count, trim_policy, quote_policy>
-                    (line, col_order, column_names, ignore_policy);
             } catch (error::with_file_name& err) {
                 err.set_file_name(in.get_truncated_file_name());
                 throw;
@@ -1205,10 +1202,7 @@ namespace io {
         }
 
         bool has_column(const std::string& name) const {
-            return col_order.end() != std::find(
-                col_order.begin(), col_order.end(),
-                std::find(std::begin(column_names), std::end(column_names), name)
-                - std::begin(column_names));
+            return true;
         }
 
         void set_file_name(const std::string& file_name) {
