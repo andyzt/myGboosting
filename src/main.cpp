@@ -29,6 +29,7 @@ int main(int argc, char** argv) {
     args::ValueFlag<int> nthreads(arguments, "number of threads", "number of parallel pthreads to run", { "nthreads" }, 1);
     args::ValueFlag<int> min_leaf_count(arguments, "min leaf size",
                                         "min number of samples in leaf node", { "min_leaf_count" }, 1);
+    args::ValueFlag<int> verbose(arguments, "verbose level", "extended output", { "verbose" }, 0);
     args::HelpFlag h(arguments, "help", "help", { 'h', "help" });
     //args::PositionalList<std::string> pathsList(arguments, "paths", "files to commit");
 
@@ -49,7 +50,7 @@ int main(int argc, char** argv) {
 
             TrainMode::Run(args::get(input_file), args::get(iterations), args::get(learning_rate), args::get(depth),
                            args::get(sample_rate), args::get(max_bins), args::get(min_leaf_count),
-                           args::get(output_file));
+                           args::get(output_file), args::get(verbose)==1);
         } else if (predict) {
             if (args::get(input_file) == "") {
                 std::cout << "input file missing: " + input_file.Name() << std::endl;
@@ -66,7 +67,8 @@ int main(int argc, char** argv) {
                 return 1;
             }
 
-            PredictMode::Run(args::get(input_file), args::get(model_file), args::get(output_file));
+            PredictMode::Run(args::get(input_file), args::get(model_file),
+                             args::get(output_file), args::get(verbose)==1);
         }
     }
     catch (const args::Help&) {

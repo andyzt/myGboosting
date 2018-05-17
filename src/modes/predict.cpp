@@ -11,26 +11,29 @@
 #include <numeric>
 #include <fstream>
 
-void PredictMode::Run(const std::string& path, const std::string& model_file, const std::string& output_file) {
-    std::cout << "Predict" << std::endl;
-
-    std::cout << "Loading Dataset" << path << std::endl;
-
-    TRawPool raw_pool = LoadTestingPool(model_file);
+void PredictMode::Run(const std::string& path,
+                      const std::string& model_file,
+                      const std::string& output_file,
+                      const bool verbose) {
+    if (verbose) {
+        std::cout << "Predict" << std::endl;
+        std::cout << "Loading Dataset" << path << std::endl;
+    }
+    TRawPool raw_pool = LoadTestingPool(path);
 
     TModel model;
 
     model.DeSerialize(model_file);
 
-
-    std::cout << "Done" << std::endl;
-    std::cout << "Raw features: " << raw_pool.RawFeatures.size() << std::endl;
-    std::cout << "Size: " << raw_pool.Target.size() << std::endl;
-
+    if (verbose) {
+        std::cout << "Done" << std::endl;
+        std::cout << "Raw features: " << raw_pool.RawFeatures.size() << std::endl;
+        std::cout << "Size: " << raw_pool.RawFeatures[0].size() << std::endl;
+    }
 
     auto predictions = model.PredictOnTestData(raw_pool);
 
-    std::cout << "Writing to file: " << output_file << std::endl;
+    std::cout << "Writing predictions to file: " << output_file << std::endl;
 
     std::ofstream out(output_file);
     for (const auto& val : predictions) {

@@ -19,7 +19,7 @@ TRawPool LoadTrainingPool(const std::string& path) {
 
     std::getline(input, line);
     featureCount = size_t(std::count(line.begin(), line.end(), ',')) + 1;
-    std::cout << "Detected " << featureCount << " columns" << std::endl;
+    //std::cout << "Detected " << featureCount << " columns" << std::endl;
 
     for (size_t i = 0; i < featureCount; ++i) {
         pool.RawFeatures.emplace_back();
@@ -54,35 +54,21 @@ TRawPool LoadTestingPool(const std::string& path) {
     size_t size = 0;
     size_t featureCount = 0;
 
-    while (input >> line) {
-        if (pool.RawFeatures.empty()) {
-            featureCount = size_t(std::count(line.begin(), line.end(), ',')) + 1;
-            std::cout << "Detected " << featureCount << " columns" << std::endl;
+    std::getline(input, line);
+    featureCount = size_t(std::count(line.begin(), line.end(), ',')) + 1;
+    //std::cout << "Detected " << featureCount << " columns" << std::endl;
 
-            for (size_t i = 0; i < featureCount; ++i) {
-                pool.RawFeatures.emplace_back();
-                pool.RawFeatures.back().reserve(1024);
-            }
-        }
+    for (size_t i = 0; i < featureCount; ++i) {
+        pool.RawFeatures.emplace_back();
+        pool.RawFeatures.back().reserve(1024);
+    }
 
-        std::stringstream stream(line);
+    io::CSVReader<io::trim_chars<' '>, io::double_quote_escape<',','\"'> > in(path, featureCount);
 
-        size_t featureId = 0;
-        std::string str;
-
-        while (std::getline(stream, str, ',')) {
-            float value;
-
-
-                value = std::stof(str);
-
-            pool.RawFeatures[featureId++].push_back(value);
-        }
-
-        if (featureId != featureCount) {
-            throw std::length_error("Missing column in line " + std::to_string(size + 1));
-        }
-
+    std::vector<float> row(featureCount);
+    while (in.read_row(row)) {
+        for (size_t i =0;i < row.size();++i)
+            pool.RawFeatures[i].push_back(row[i]);
         size++;
     }
 

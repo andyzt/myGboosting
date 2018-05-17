@@ -14,28 +14,25 @@
 
 void TrainMode::Run(const std::string& path, const int iterations, const float lrate, const int depth,
                     const float sample_rate, const int max_bins, const int min_leaf_count,
-                    const std::string& output_file) {
-    std::cout << "Train" << std::endl;
+                    const std::string& output_file, const bool verbose) {
 
-    std::cout << "Loading " << path << std::endl;
+    if (verbose) {
+        std::cout << "Train" << std::endl;
+        std::cout << "Loading " << path << std::endl;
+    }
 
-
-    //TBinarizer binarizer;
-
-    std::cout << " Loading started" << std::endl;
     TRawPool pool = LoadTrainingPool(path);
-    std::cout << " Loading ended" << std::endl;
+    if (verbose) {
+        std::cout << " Loading ended" << std::endl;
 
-    std::cout << "Done" << std::endl;
-    std::cout << "Raw features: " << pool.RawFeatures.size() << std::endl;
-
-    std::cout << "Size: " << pool.RawFeatures[0].size() << std::endl;
-
-
+        std::cout << "Raw features: " << pool.RawFeatures.size() << std::endl;
+        std::cout << "Size: " << pool.RawFeatures[0].size() << std::endl;
+    }
     TModel model;
     model.Fit(pool, lrate, iterations, sample_rate, depth, min_leaf_count, max_bins);
 
-    std::cout << "Writing to file: " << output_file << std::endl;
+    if (verbose)
+        std::cout << "Writing to file: " << output_file << std::endl;
     model.Serialize(output_file);
 
 }
