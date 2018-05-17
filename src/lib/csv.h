@@ -52,6 +52,7 @@
 #include <cassert>
 #include <cerrno>
 #include <istream>
+#include <iostream>
 
 namespace io {
     ////////////////////////////////////////////////////////////////////////////
@@ -1104,8 +1105,7 @@ namespace io {
 
     }
 
-    template <unsigned column_count,
-        class trim_policy = trim_chars<' ', '\t'>,
+    template <class trim_policy = trim_chars<' ', '\t'>,
         class quote_policy = no_quote_escape<','>,
         class overflow_policy = throw_on_overflow,
         class comment_policy = no_comment
@@ -1114,8 +1114,9 @@ namespace io {
     private:
         LineReader in;
 
-        char* (row[column_count]);
-        std::string column_names[column_count];
+        unsigned column_count;
+        char** row;
+        std::string* column_names;
 
         std::vector<int> col_order;
 
@@ -1132,8 +1133,24 @@ namespace io {
         CSVReader() = delete;
 
         CSVReader(const CSVReader&) = delete;
+        ~CSVReader() {
+            delete row;
+            //delete column_names;
+        }
 
         CSVReader& operator=(const CSVReader&);
+
+        explicit CSVReader(std::string path, size_t col_count):in(path) {
+            column_count = col_count;
+            row = new char*[column_count];
+            column_names = new std::string[column_count];
+            std::fill(row, row + column_count, nullptr);
+            col_order.resize(column_count);
+            for (unsigned i = 0; i < column_count; ++i)
+                col_order[i] = i;
+            for (unsigned i = 1; i <= column_count; ++i)
+                column_names[i - 1] = "col" + std::to_string(i);
+        }
 
         template <class ...Args>
         explicit CSVReader(Args&& ...args):in(std::forward<Args>(args)...) {

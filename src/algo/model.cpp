@@ -5,6 +5,7 @@
 
 
 
+
 static float MSE(const TTarget& target, const TTarget& test) {
     float mse = 0.0;
 
@@ -39,15 +40,20 @@ void TModel::Fit(TRawPool& raw_pool, float rate, float iterations, float sample_
 
     raw_pool.RawFeatures.clear();
     raw_pool.Target.clear();
+
+    double seconds = 0.0;
+    clock_t start = clock();
+
     for (int iter = 0; iter < iterations; ++iter) {
-        Trees.push_back(TDecisionTree::FitHist(pool, depth, min_leaf_count, sample_rate, LearningRate,
+        Trees.emplace_back(TDecisionTree::FitHist(pool, depth, min_leaf_count, sample_rate,
                                                all_bounds, false));
-
-        const auto& tree = Trees.back();
-
+        Trees.back().ModifyTargetByPredict(pool, LearningRate);
         std::cout << "Iteration # " << iter << " finished " << std::endl;
         //std::cout << "MSE = " << MSE(target, Predict(pool)) << std::endl;
     }
+    clock_t end = clock();
+    seconds = double(end - start) / CLOCKS_PER_SEC;
+    std::cout << "Total time: " << seconds << std::endl;
     std::cout << "MSE = " << MSE(original_target, Predict(pool)) << std::endl;
 
 

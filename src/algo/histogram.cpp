@@ -27,7 +27,7 @@ std::vector<float> BuildBinBounds(const TRawFeature& data, size_t max_bins) {
 
     std::vector<float> bin_upper_bound;
     if (num_distinct_values <= max_bins) {
-        for (int i = 0; i < num_distinct_values - 1; ++i) {
+        for (size_t i = 0; i < num_distinct_values - 1; ++i) {
             bin_upper_bound.push_back((distinct_values[i] + distinct_values[i + 1]) / 2.0);
         }
         bin_upper_bound.push_back(std::numeric_limits<float>::max());
@@ -38,7 +38,7 @@ std::vector<float> BuildBinBounds(const TRawFeature& data, size_t max_bins) {
         int rest_bin_cnt = max_bins;
         int rest_sample_cnt = static_cast<int>(row_count);
         std::vector<bool> is_big_count_value(num_distinct_values, false);
-        for (int i = 0; i < num_distinct_values; ++i) {
+        for (size_t i = 0; i < num_distinct_values; ++i) {
             if (counts[i] >= mean_bin_size) {
                 is_big_count_value[i] = true;
                 --rest_bin_cnt;
@@ -49,10 +49,10 @@ std::vector<float> BuildBinBounds(const TRawFeature& data, size_t max_bins) {
         std::vector<float> upper_bounds(max_bins, std::numeric_limits<float>::infinity());
         std::vector<float> lower_bounds(max_bins, std::numeric_limits<float>::infinity());
 
-        int bin_cnt = 0;
+        size_t bin_cnt = 0;
         lower_bounds[bin_cnt] = distinct_values[0];
         int cur_cnt_inbin = 0;
-        for (int i = 0; i < num_distinct_values - 1; ++i) {
+        for (size_t i = 0; i < num_distinct_values - 1; ++i) {
             if (!is_big_count_value[i]) {
                 rest_sample_cnt -= counts[i];
             }

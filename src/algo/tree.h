@@ -34,17 +34,19 @@ using TNodes = std::vector<TDecisionTreeNode>;
 class TDecisionTree {
 public:
 
-    static TDecisionTree FitHist(TPool& pool, size_t maxDepth, size_t minCount, float sample_rate, float lrate,
-                             std::vector<std::vector<float>>& all_bounds, bool verbose);
+    static TDecisionTree FitHist(TPool& pool,
+                                 size_t maxDepth,
+                                 size_t minCount,
+                                 float sample_rate,
+                                 std::vector<std::vector<float>>& all_bounds, bool verbose);
+
     //float Predict(const TFeatureRow& data) const;
     void AddPredict(TPool& pool, float lrate, TTarget& predictions) const;
-    void ModifyTargetByPredict(TPool&& pool, float lrate) const;
+    void ModifyTargetByPredict(TPool& pool, float lrate) const;
 
-private:
-    std::vector<int> GetPredictionIndices(TPool& pool) const;
 
 public:
-    TNodes Nodes;
+
     std::vector<std::pair<int, u_int8_t>> splits;
     std::vector<float> values;
 };

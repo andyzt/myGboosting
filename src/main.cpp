@@ -1,5 +1,4 @@
 #include "lib/args.hxx"
-#include "lib/csv.h"
 #include "modes/predict.h"
 #include "modes/train.h"
 
@@ -28,7 +27,7 @@ int main(int argc, char** argv) {
     args::ValueFlag<int> depth(arguments, "tree depth", "decision tree max depth", { "depth" }, 6);
     args::ValueFlag<int> max_bins(arguments, "humber of bins", "max number of bins in histogram", { "max_bins" }, 10);
     args::ValueFlag<int> min_leaf_count(arguments, "min leaf size",
-                                        "min number of samples in leaf node", { "min_leaf_count" }, 10);
+                                        "min number of samples in leaf node", { "min_leaf_count" }, 1);
     args::HelpFlag h(arguments, "help", "help", { 'h', "help" });
     //args::PositionalList<std::string> pathsList(arguments, "paths", "files to commit");
 
@@ -44,6 +43,7 @@ int main(int argc, char** argv) {
                 std::cout << "output file missing: " + output_file.Name() << std::endl;
                 return 1;
             }
+
 
             TrainMode::Run(args::get(input_file), args::get(iterations), args::get(learning_rate), args::get(depth),
                            args::get(sample_rate), args::get(max_bins), args::get(min_leaf_count),
