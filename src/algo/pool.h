@@ -17,7 +17,6 @@ public:
     size_t Size = 0;
    };
 
-TRawPool LoadTrainingPool(const std::string& path);
-TRawPool LoadTestingPool(const std::string& path);
+TRawPool LoadPool(const Config& config);
 TPool ConvertPoolToBinNumbers(const TRawPool& raw, const std::vector<std::vector<float>>& bounds);
 

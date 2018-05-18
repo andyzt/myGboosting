@@ -1,5 +1,5 @@
 #include "model.h"
-#include "src/proto/model.pb.h"
+//#include "../proto/model.pb.h"
 #include <fstream>
 #include "histogram.h"
 
@@ -25,13 +25,12 @@ TModel::TModel(TBinarizer&& binarizer)
 }
 */
 
-void TModel::Fit(TRawPool& raw_pool, float rate, float iterations, float sample_rate,
-                 size_t depth, size_t min_leaf_count, size_t max_bins) {
-    LearningRate = rate;
+void TModel::Fit(TRawPool& raw_pool, const Config& config) {
+    LearningRate = config.learning_rate;
     TTarget original_target(raw_pool.Target);
 
     for (size_t l = 0; l < raw_pool.RawFeatures.size(); ++l) {
-        upper_bounds.emplace_back(BuildBinBounds(raw_pool.RawFeatures[l], max_bins));
+        upper_bounds.emplace_back(BuildBinBounds(raw_pool.RawFeatures[l], config.max_bins));
     }
 
     TPool pool = ConvertPoolToBinNumbers(raw_pool, upper_bounds);
@@ -42,16 +41,23 @@ void TModel::Fit(TRawPool& raw_pool, float rate, float iterations, float sample_
     double seconds = 0.0;
     clock_t start = clock();
 
-    for (int iter = 0; iter < iterations; ++iter) {
-        Trees.emplace_back(TDecisionTree::FitHist(pool, depth, min_leaf_count, sample_rate,
-                                               upper_bounds, false));
+    for (int iter = 0; iter < config.iterations; ++iter) {
+        Trees.emplace_back(TDecisionTree::FitHist(pool,
+                                                  config.depth,
+                                                  config.min_leaf_count,
+                                                  config.sample_rate,
+                                                  upper_bounds,
+                                                  false)
+        );
         Trees.back().ModifyTargetByPredict(pool, LearningRate);
         std::cout << "Iteration # " << iter << " finished " << std::endl;
         //std::cout << "MSE = " << MSE(target, Predict(pool)) << std::endl;
     }
     clock_t end = clock();
     seconds = double(end - start) / CLOCKS_PER_SEC;
-    std::cout << "Total time: " << seconds << std::endl;
+    if (config.verbose) {
+        std::cout << "Total time: " << seconds << std::endl;
+    }
     std::cout << "MSE = " << MSE(original_target, Predict(pool)) << std::endl;
 
 
@@ -81,7 +87,7 @@ TTarget TModel::PredictOnTestData(const TRawPool& raw_pool) const {
 void TModel::Serialize(const std::string& filename) {
     // Verify that the version of the library that we linked against is
     // compatible with the version of the headers we compiled against.
-   GOOGLE_PROTOBUF_VERIFY_VERSION;
+/*   GOOGLE_PROTOBUF_VERIFY_VERSION;
 
     proto_model::Model my_model;
     my_model.set_lr(LearningRate);
@@ -117,13 +123,13 @@ void TModel::Serialize(const std::string& filename) {
 
     // Optional:  Delete all global objects allocated by libprotobuf.
     google::protobuf::ShutdownProtobufLibrary();
-
+*/
 }
 
 void TModel::DeSerialize(const std::string& filename) {
     // Verify that the version of the library that we linked against is
     // compatible with the version of the headers we compiled against.
-    GOOGLE_PROTOBUF_VERIFY_VERSION;
+/*    GOOGLE_PROTOBUF_VERIFY_VERSION;
 
 
 
@@ -168,5 +174,5 @@ void TModel::DeSerialize(const std::string& filename) {
 
         // Optional:  Delete all global objects allocated by libprotobuf.
     google::protobuf::ShutdownProtobufLibrary();
-
+*/
 }

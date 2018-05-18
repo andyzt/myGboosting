@@ -177,10 +177,13 @@ TDecisionTree TDecisionTree::FitHist(TPool& pool,
                                                   parent_level_nodes,
                                                   feature_id,
                                                   all_bounds[feature_id].size());
-            if (cur_split.gain > max_gain) {
-                max_gain = cur_split.gain;
-                best_feature = feature_id;
-                bin_id = cur_split.bin_id;
+            #pragma omp critical
+            {
+                if (cur_split.gain > max_gain) {
+                    max_gain = cur_split.gain;
+                    best_feature = feature_id;
+                    bin_id = cur_split.bin_id;
+                }
             }
         }
 

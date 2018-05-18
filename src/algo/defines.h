@@ -35,5 +35,25 @@ struct HistogramBin {
     double cumulative_sum = 0;
 };
 
+//command line parameters
+struct Config {
+    std::string mode;
+    std::string input_file;
+    std::string model_file;
+    std::string output_file;
+    int iterations;
+    float learning_rate;
+    int depth;
+    float sample_rate;
+    uint8_t max_bins;
+    int min_leaf_count;
+    int nthreads;
+    char delimiter;
+    bool has_header;
+    bool has_target;
+    int target_column_num;
+    bool verbose;
+};
+
 // histogram
 using THistogram = std::vector<HistogramBin>;

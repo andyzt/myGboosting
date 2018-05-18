@@ -12,27 +12,25 @@
 #include <numeric>
 #include <sstream>
 
-void TrainMode::Run(const std::string& path, const int iterations, const float lrate, const int depth,
-                    const float sample_rate, const int max_bins, const int min_leaf_count,
-                    const std::string& output_file, const bool verbose) {
+void TrainMode::Run(const Config& config) {
 
-    if (verbose) {
+    if (config.verbose) {
         std::cout << "Train" << std::endl;
-        std::cout << "Loading " << path << std::endl;
+        std::cout << "Loading " << config.input_file << std::endl;
     }
 
-    TRawPool pool = LoadTrainingPool(path);
-    if (verbose) {
+    TRawPool pool = LoadPool(config);
+    if (config.verbose) {
         std::cout << " Loading ended" << std::endl;
 
         std::cout << "Raw features: " << pool.RawFeatures.size() << std::endl;
         std::cout << "Size: " << pool.RawFeatures[0].size() << std::endl;
     }
     TModel model;
-    model.Fit(pool, lrate, iterations, sample_rate, depth, min_leaf_count, max_bins);
+    model.Fit(pool, config);
 
-    if (verbose)
-        std::cout << "Writing to file: " << output_file << std::endl;
-    model.Serialize(output_file);
+    if (config.verbose)
+        std::cout << "Writing to file: " << config.output_file << std::endl;
+    model.Serialize(config.output_file);
 
 }

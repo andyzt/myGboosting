@@ -7,8 +7,7 @@ class TModel {
 public:
     TModel();
 
-    void Fit(TRawPool& raw_pool, float rate, float iterations, float sample_rate,
-             size_t depth, size_t min_leaf_count, size_t max_bins);
+    void Fit(TRawPool& raw_pool, const Config& config);
     TTarget Predict(TPool& pool) const;
     TTarget PredictOnTestData(const TRawPool& raw) const;
     void Serialize(const std::string& filename);

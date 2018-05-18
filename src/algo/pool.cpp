@@ -8,10 +8,10 @@
 #include "histogram.h"
 #include "lib/csv.h"
 
-TRawPool LoadTrainingPool(const std::string& path) {
+TRawPool LoadPool(const Config& config) {
     TRawPool pool;
 
-    std::ifstream input(path);
+    std::ifstream input(config.input_file);
     std::string line;
 
     size_t size = 0;
@@ -26,59 +26,48 @@ TRawPool LoadTrainingPool(const std::string& path) {
         pool.RawFeatures.back().reserve(1024);
     }
 
-    io::CSVReader<io::trim_chars<' '>, io::double_quote_escape<',','\"'> > in(path, featureCount);
+    if (config.delimiter == ',') {
+        io::CSVReader<io::trim_chars<' '>, io::double_quote_escape<',', '\"'> > in(config.input_file, featureCount);
 
-    std::vector<float> row(featureCount);
-    while (in.read_row(row)) {
-        for (size_t i =0;i < row.size();++i)
-        pool.RawFeatures[i].push_back(row[i]);
-        size++;
+        std::vector<std::string> col_names(featureCount);
+        if (config.has_header)
+            in.read_header(io::ignore_missing_column, col_names);
+
+        std::vector<float> row(featureCount);
+        while (in.read_row(row)) {
+            for (size_t i = 0; i < row.size(); ++i)
+                pool.RawFeatures[i].push_back(row[i]);
+            size++;
+        }
+    } else if (config.delimiter == ';') {
+        io::CSVReader<io::trim_chars<' '>, io::double_quote_escape<';', '\"'> > in(config.input_file, featureCount);
+
+        std::vector<std::string> col_names(featureCount);
+        if (config.has_header)
+            in.read_header(io::ignore_missing_column, col_names);
+
+        std::vector<float> row(featureCount);
+        while (in.read_row(row)) {
+            for (size_t i = 0; i < row.size(); ++i)
+                pool.RawFeatures[i].push_back(row[i]);
+            size++;
+        }
     }
 
     if (size == 0) {
         throw std::length_error("Empty file");
     }
 
-    pool.Target = std::move(pool.RawFeatures.back());
-    pool.RawFeatures.pop_back();
-
-    return pool;
-}
-
-TRawPool LoadTestingPool(const std::string& path) {
-    TRawPool pool;
-
-    std::ifstream input(path);
-    std::string line;
-
-    size_t size = 0;
-    size_t featureCount = 0;
-
-    std::getline(input, line);
-    featureCount = size_t(std::count(line.begin(), line.end(), ',')) + 1;
-    //std::cout << "Detected " << featureCount << " columns" << std::endl;
-
-    for (size_t i = 0; i < featureCount; ++i) {
-        pool.RawFeatures.emplace_back();
-        pool.RawFeatures.back().reserve(1024);
+    // usually we have no target in testing dataset
+    if (config.mode =="fit" || config.has_target) {
+        if (config.target_column_num == -1) {
+            pool.Target = std::move(pool.RawFeatures.back());
+            pool.RawFeatures.pop_back();
+        } else {
+            pool.Target = pool.RawFeatures[config.target_column_num];
+            pool.RawFeatures.erase(pool.RawFeatures.begin() + config.target_column_num);
+        }
     }
-
-    io::CSVReader<io::trim_chars<' '>, io::double_quote_escape<',','\"'> > in(path, featureCount);
-
-    std::vector<float> row(featureCount);
-    while (in.read_row(row)) {
-        for (size_t i =0;i < row.size();++i)
-            pool.RawFeatures[i].push_back(row[i]);
-        size++;
-    }
-
-    if (size == 0) {
-        throw std::length_error("Empty file");
-    }
-
-    // we have no target in testing dataset
-    //pool.Target = std::move(pool.RawFeatures.back());
-    pool.RawFeatures.pop_back();
 
     return pool;
 }

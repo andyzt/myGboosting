@@ -11,21 +11,18 @@
 #include <numeric>
 #include <fstream>
 
-void PredictMode::Run(const std::string& path,
-                      const std::string& model_file,
-                      const std::string& output_file,
-                      const bool verbose) {
-    if (verbose) {
+void PredictMode::Run(const Config& config) {
+    if (config.verbose) {
         std::cout << "Predict" << std::endl;
-        std::cout << "Loading Dataset" << path << std::endl;
+        std::cout << "Loading Dataset" << config.input_file << std::endl;
     }
-    TRawPool raw_pool = LoadTestingPool(path);
+    TRawPool raw_pool = LoadPool(config);
 
     TModel model;
 
-    model.DeSerialize(model_file);
+    model.DeSerialize(config.model_file);
 
-    if (verbose) {
+    if (config.verbose) {
         std::cout << "Done" << std::endl;
         std::cout << "Raw features: " << raw_pool.RawFeatures.size() << std::endl;
         std::cout << "Size: " << raw_pool.RawFeatures[0].size() << std::endl;
@@ -33,9 +30,9 @@ void PredictMode::Run(const std::string& path,
 
     auto predictions = model.PredictOnTestData(raw_pool);
 
-    std::cout << "Writing predictions to file: " << output_file << std::endl;
+    std::cout << "Writing predictions to file: " << config.output_file << std::endl;
 
-    std::ofstream out(output_file);
+    std::ofstream out(config.output_file);
     for (const auto& val : predictions) {
         out << val << std::endl;
     }
