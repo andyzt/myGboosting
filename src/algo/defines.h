@@ -55,5 +55,12 @@ struct Config {
     bool verbose;
 };
 
+class TSplit {
+public:
+    size_t FeatureId = 0;
+    size_t bin_id = 0;
+    double gain = 0.0;
+};
+
 // histogram
 using THistogram = std::vector<HistogramBin>;
