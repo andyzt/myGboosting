@@ -33,12 +33,8 @@ void TModel::Fit(TRawPool& raw_pool, const Config& config) {
     clock_t start = clock();
 
     for (int iter = 0; iter < config.iterations; ++iter) {
-        Trees.emplace_back(TDecisionTree::FitHist(pool,
-                                                  config.depth,
-                                                  config.min_leaf_count,
-                                                  config.sample_rate,
-                                                  upper_bounds,
-                                                  false)
+        Trees.emplace_back(TDecisionTree::FitHist(pool, config.depth, config.min_leaf_count,
+                                                  config.sample_rate, upper_bounds)
         );
         Trees.back().ModifyTargetByPredict(pool, LearningRate);
         std::cout << "Iteration # " << iter << " finished " << std::endl;
