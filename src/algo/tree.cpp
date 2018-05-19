@@ -1,8 +1,6 @@
 #include "tree.h"
-
 #include <numeric>
 #include <set>
-#include "histogram.h"
 #include <random>
 #include <omp.h>
 

@@ -1,8 +1,7 @@
 #include "model.h"
 #include <fstream>
 #include "histogram.h"
-
-
+#include <limits>
 
 
 static float MSE(const TTarget& target, const TTarget& test) {
@@ -86,7 +85,7 @@ void TModel::Serialize(const std::string& filename) {
         output_file << tree.splits.size() << std::endl;
         for (const auto& split : tree.splits) {
             output_file << split.first << ' ';
-            output_file << split.second << ' ';
+            output_file << static_cast<int>(split.second) << ' ';
         }
         output_file << std::endl;
         output_file << tree.values.size() << std::endl;
@@ -98,14 +97,15 @@ void TModel::Serialize(const std::string& filename) {
 
     //saving all upper bounds
     output_file << upper_bounds.size() << std::endl;
+
     for (const auto& bound : upper_bounds) {
         output_file << bound.size() << std::endl;
-        for (const auto& bound_val : bound)
-            output_file << bound_val << ' ';
+        //last val is +inf
+        for (int i = 0; i + 1 < bound.size(); ++i) {
+            output_file << bound[i] << ' ';
+        }
         output_file << std::endl;
     }
-
-    output_file.close();
 }
 
 void TModel::DeSerialize(const std::string& filename) {
@@ -125,9 +125,10 @@ void TModel::DeSerialize(const std::string& filename) {
         size_t N_splits;
         input >> N_splits;
         for (int j=0; j <  N_splits; ++j) {
-            std::pair<int, u_int8_t> new_split;
-            input >> new_split.first >> new_split.second;
-            new_tree.splits.emplace_back(new_split);
+            int feature;
+            int bin;
+            input >> feature >> bin;
+            new_tree.splits.emplace_back(std::make_pair(feature, static_cast<uint8_t>(bin)));
         }
         size_t N_leafs;
         input >> N_leafs;
@@ -137,22 +138,29 @@ void TModel::DeSerialize(const std::string& filename) {
             new_tree.values.emplace_back(val);
         }
         Trees.emplace_back(new_tree);
+
     }
 
     //loading all bounds
     size_t N_bounds;
     input >> N_bounds;
+
     for (int i=0; i <  N_bounds; ++i) {
         std::vector<float> new_bound;
         size_t N_bound_vals;
         input >> N_bound_vals;
-        for (int j=0; j <  N_bound_vals; ++j) {
+        //last val is +inf
+        for (int j=0; j + 1<  N_bound_vals; ++j) {
             float bound_val;
             input >> bound_val;
             new_bound.push_back(bound_val);
         }
+        new_bound.push_back(std::numeric_limits<float>::max());
         upper_bounds.emplace_back(new_bound);
     }
+
+
+
 }
 
 /*

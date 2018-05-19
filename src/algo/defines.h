@@ -45,7 +45,7 @@ struct Config {
     float learning_rate;
     int depth;
     float sample_rate;
-    uint8_t max_bins;
+    int max_bins;
     int min_leaf_count;
     int nthreads;
     char delimiter;
