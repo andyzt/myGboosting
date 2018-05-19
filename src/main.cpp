@@ -114,13 +114,13 @@ int main(int argc, char** argv) {
     if (CheckArguments(config))
         return -1;
 
-    omp_set_num_threads(config.nthreads);
+//    omp_set_num_threads(config.nthreads);
 
-    if (config.verbose)
-        std::cout << " Max threads: " << omp_get_max_threads() << std::endl;
+ //   if (config.verbose)
+ //       std::cout << " Max threads: " << omp_get_max_threads() << std::endl;
     if (config.mode == "fit") {
         TrainMode::Run(config);
-    } else if (config.mode == "fit") {
+    } else if (config.mode == "predict") {
         PredictMode::Run(config);
     }
 

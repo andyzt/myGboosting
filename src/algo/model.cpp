@@ -1,5 +1,4 @@
 #include "model.h"
-//#include "../proto/model.pb.h"
 #include <fstream>
 #include "histogram.h"
 
@@ -17,13 +16,6 @@ static float MSE(const TTarget& target, const TTarget& test) {
 }
 
 TModel::TModel() {}
-
-/*
-TModel::TModel(TBinarizer&& binarizer)
-    : Binarizer(std::forward<TBinarizer>(binarizer)) {
-
-}
-*/
 
 void TModel::Fit(TRawPool& raw_pool, const Config& config) {
     LearningRate = config.learning_rate;
@@ -83,11 +75,91 @@ TTarget TModel::PredictOnTestData(const TRawPool& raw_pool) const {
     return predictions;
 }
 
-
 void TModel::Serialize(const std::string& filename) {
+
+    std::ofstream output_file(filename);
+    output_file << LearningRate << std::endl;
+
+    //saving all decision trees
+    output_file << Trees.size() << std::endl;
+    for (const auto& tree : Trees) {
+        output_file << tree.splits.size() << std::endl;
+        for (const auto& split : tree.splits) {
+            output_file << split.first << ' ';
+            output_file << split.second << ' ';
+        }
+        output_file << std::endl;
+        output_file << tree.values.size() << std::endl;
+        for (const float value : tree.values) {
+            output_file << value << ' ';
+        }
+        output_file << std::endl;
+    }
+
+    //saving all upper bounds
+    output_file << upper_bounds.size() << std::endl;
+    for (const auto& bound : upper_bounds) {
+        output_file << bound.size() << std::endl;
+        for (const auto& bound_val : bound)
+            output_file << bound_val << ' ';
+        output_file << std::endl;
+    }
+
+    output_file.close();
+}
+
+void TModel::DeSerialize(const std::string& filename) {
+    // Read the existing model.
+    std::ifstream input(filename);
+    if (!input) {
+        std::cout << filename << ": File not found." << std::endl;
+        return;
+    }
+
+    input >> LearningRate;
+
+    size_t N_trees;
+    input >> N_trees;
+    for (int i=0; i <  N_trees; ++i) {
+        TDecisionTree new_tree;
+        size_t N_splits;
+        input >> N_splits;
+        for (int j=0; j <  N_splits; ++j) {
+            std::pair<int, u_int8_t> new_split;
+            input >> new_split.first >> new_split.second;
+            new_tree.splits.emplace_back(new_split);
+        }
+        size_t N_leafs;
+        input >> N_leafs;
+        for (int j=0; j <  N_leafs; ++j) {
+            float val;
+            input >> val;
+            new_tree.values.emplace_back(val);
+        }
+        Trees.emplace_back(new_tree);
+    }
+
+    //loading all bounds
+    size_t N_bounds;
+    input >> N_bounds;
+    for (int i=0; i <  N_bounds; ++i) {
+        std::vector<float> new_bound;
+        size_t N_bound_vals;
+        input >> N_bound_vals;
+        for (int j=0; j <  N_bound_vals; ++j) {
+            float bound_val;
+            input >> bound_val;
+            new_bound.push_back(bound_val);
+        }
+        upper_bounds.emplace_back(new_bound);
+    }
+}
+
+/*
+void TModel::SerializeProtobuf(const std::string& filename) {
     // Verify that the version of the library that we linked against is
     // compatible with the version of the headers we compiled against.
-/*   GOOGLE_PROTOBUF_VERIFY_VERSION;
+   GOOGLE_PROTOBUF_VERIFY_VERSION;
 
     proto_model::Model my_model;
     my_model.set_lr(LearningRate);
@@ -123,17 +195,15 @@ void TModel::Serialize(const std::string& filename) {
 
     // Optional:  Delete all global objects allocated by libprotobuf.
     google::protobuf::ShutdownProtobufLibrary();
-*/
+
 }
 
-void TModel::DeSerialize(const std::string& filename) {
+void TModel::DeSerializeProtobuf(const std::string& filename) {
     // Verify that the version of the library that we linked against is
     // compatible with the version of the headers we compiled against.
-/*    GOOGLE_PROTOBUF_VERIFY_VERSION;
+    GOOGLE_PROTOBUF_VERIFY_VERSION;
 
-
-
-     proto_model::Model my_model;
+    proto_model::Model my_model;
 
     // Read the existing model.
     std::fstream input(filename, std::ios::in | std::ios::binary);
@@ -174,5 +244,6 @@ void TModel::DeSerialize(const std::string& filename) {
 
         // Optional:  Delete all global objects allocated by libprotobuf.
     google::protobuf::ShutdownProtobufLibrary();
-*/
+
 }
+*/
